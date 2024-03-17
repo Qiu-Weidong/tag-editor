@@ -1,6 +1,3 @@
-
-// 这个页面用于过滤和选择图片
-
 import { AppBar, Button, IconButton, InputAdornment, TextField, Toolbar } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
@@ -11,6 +8,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api";
 import ForwardImageGalley from "./Gallery";
+import MasonryImageList from "./ImageList";
 
 
 
@@ -50,6 +48,8 @@ function App() {
       });
     });
   }
+
+
 
   return (
     <div>
@@ -113,7 +113,8 @@ function App() {
 
       {/* 正式内容 */}
       <Routes>
-        <Route path="/gallery" element={<ForwardImageGalley ref={gallery} onLoadingChange={setLoading} />}></Route>
+        <Route path="/*" element={<MasonryImageList></MasonryImageList>}></Route>
+        {/* <Route path="/gallery" element={<ForwardImageGalley ref={gallery} onLoadingChange={setLoading} />}></Route> */}
       </Routes>
 
 
