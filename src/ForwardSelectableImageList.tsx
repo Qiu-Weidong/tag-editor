@@ -66,7 +66,7 @@ function SelectableImageItem(props: { select: (index: string, isSelected: boolea
 const ForwardSelectableImageList = forwardRef(function SelectableImageList(_props: {}, ref: any) {
   useImperativeHandle(ref, () => ({
     // 暴露两个函数供父级组件调用
-    selectAll, unselectAll, getSelectedImages, setImages,
+    selectAll, unselectAll, getSelectedImages, setImages,getImages,getUnSelectedImages
   }));
 
   const [images, setImages] = useState<SelectableImage[]>([]);
@@ -102,9 +102,17 @@ const ForwardSelectableImageList = forwardRef(function SelectableImageList(_prop
     return images.filter((item) => item.isSelected);
   }
 
+  function getImages() {
+    return images;
+  }
+
+  function getUnSelectedImages() {
+    return images.filter((item) => ! item.isSelected);
+  }
+
   return (
     <Box >
-      <ImageList variant="masonry" cols={6} gap={4}>
+      <ImageList variant="masonry" cols={6} gap={4} style={{ marginTop: 0 }} >
 
         {images.map((item) => (
           <SelectableImageItem image={item} select={select} key={item.id}/>

@@ -8,7 +8,6 @@ import HomeIcon from '@mui/icons-material/Home';
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api";
 import ForwardImageGallery from "./ForwardImageGallery";
-import ParentComponent from "./fuck";
 
 
 
@@ -113,7 +112,6 @@ function App() {
 
       {/* 正式内容 */}
       <Routes>
-        <Route path="/*" element={<ParentComponent />}></Route>
         <Route path="/gallery" element={<ForwardImageGallery ref={gallery} onLoadingChange={setLoading} />}></Route>
       </Routes>
 
