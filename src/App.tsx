@@ -7,15 +7,15 @@ import CloseIcon from '@mui/icons-material/Close';
 import HomeIcon from '@mui/icons-material/Home';
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api";
-import ForwardImageGalley from "./Gallery";
-import MasonryImageList from "./ImageList";
+import ForwardImageGallery from "./ForwardImageGallery";
+import ParentComponent from "./fuck";
 
 
 
 function App() {
   const gallery = useRef<any>(null);
 
-  
+
   // 用于绑定输入内容
   const [inputValue, setInputValue] = useState(localStorage.getItem('path') || 'error');
   const [disableTextField, setDisableTextField] = useState(true);
@@ -73,7 +73,7 @@ function App() {
           {
             !loading ? <IconButton disabled={!disableTextField} onClick={() => gallery.current?.refresh()}>
               <RefreshIcon />
-            </IconButton> : <IconButton  onClick={() => gallery.current?.stop()}>
+            </IconButton> : <IconButton onClick={() => gallery.current?.stop()}>
               <CloseIcon />
             </IconButton>
           }
@@ -113,8 +113,8 @@ function App() {
 
       {/* 正式内容 */}
       <Routes>
-        <Route path="/*" element={<MasonryImageList></MasonryImageList>}></Route>
-        {/* <Route path="/gallery" element={<ForwardImageGalley ref={gallery} onLoadingChange={setLoading} />}></Route> */}
+        <Route path="/*" element={<ParentComponent />}></Route>
+        <Route path="/gallery" element={<ForwardImageGallery ref={gallery} onLoadingChange={setLoading} />}></Route>
       </Routes>
 
 

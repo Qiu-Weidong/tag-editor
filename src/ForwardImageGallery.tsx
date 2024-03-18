@@ -1,7 +1,9 @@
 import { useState, useRef, forwardRef, useImperativeHandle } from "react";
-import { Gallery } from "react-grid-gallery";
 import { invoke } from "@tauri-apps/api";
-import { Alert, Box, Chip, LinearProgress } from "@mui/material";
+import { Alert, Box, Button, Chip, LinearProgress } from "@mui/material";
+import ForwardSelectableImageList, { SelectableImage } from "./ForwardSelectableImageList";
+import shortid from 'shortid';
+
 
 
 function dumplicated(arr: string[]): string[] {
@@ -21,7 +23,9 @@ function dumplicated(arr: string[]): string[] {
 
 
 
-const ForwardImageGalley = forwardRef(function ImageGallery(props: any, ref: any) {
+const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: any) {
+  const imageList = useRef<any>(null);
+
   useImperativeHandle(ref, () => ({
     // 暴露两个函数供父级组件调用
     refresh, stop,
@@ -29,16 +33,15 @@ const ForwardImageGalley = forwardRef(function ImageGallery(props: any, ref: any
 
 
   // 相当于在这里定义页面相关的数据, 和渲染无关,无需设置为state
-  const data = useRef<{ loading: boolean, stop: boolean, images: { src: string, width: number, height: number, }[], labels: Map<string, number> }>({
+  const data = useRef<{ loading: boolean, stop: boolean, images: { src: string, width: number, height: number, id: number }[], labels: Map<string, number> }>({
     loading: false, stop: false,
-    images: [], labels: new Map<string, number>(),
+    images: [],
+    labels: new Map<string, number>(),
   });
 
 
   // 进度条
   const [progress, setProgress] = useState(100);
-  // 加载的图片
-  const [images, setImages] = useState<{ src: string, width: number, height: number }[]>([]);
   // 展示的标签
   const [labels, setLabels] = useState<{ content: string, selected: boolean, cnt: number }[]>([]);
   const [warning, setWarning] = useState('');
@@ -50,14 +53,14 @@ const ForwardImageGalley = forwardRef(function ImageGallery(props: any, ref: any
 
   async function loadImages(imagedir: string) {
     // 清空原始数据
-    setImages([]);
+    imageList.current.setImages([]);
     data.current.images = [];
     data.current.labels.clear();
 
     // 第一步,获取所有的图片路径
     let image_path_list: { extension: string, filename: string, filepath: string, stem: string }[] = await invoke("glob_images", { imagedir });
     const total = image_path_list.length;
-    let current = 0;
+
 
     const stem_list = image_path_list.map((item) => item.stem);
     const dup = dumplicated(stem_list);
@@ -65,12 +68,23 @@ const ForwardImageGalley = forwardRef(function ImageGallery(props: any, ref: any
       setWarning(`more than one file with name '${dup.toString()}'`);
     }
 
+
+    let current = 0;
+
     // 加载所有图片的缩略图和标签
     for (const imagePath of image_path_list) {
+      // 这里返回的数据不包含 id
       const image: { src: string, width: number, height: number, captions: string[] } = await invoke("load_image", { imagePath: imagePath.filepath, rowHeight, captionExt: 'txt' });
-      setImages((prev) => [...prev, image]);
+
+      const image_id = shortid.generate();
+
       // 完整的数据保存在这里, images 中保存过滤得到的数据
-      data.current.images.push(image);
+      data.current.images.push({ ...image, id: current });
+      const current_image: SelectableImage = { src: image.src, isSelected: false, id: image_id };
+
+      imageList.current?.setImages((prev: []) => [...prev, current_image]);
+
+      console.log(current_image);
 
       // 加载字幕
       for (const caption of image.captions) {
@@ -105,10 +119,9 @@ const ForwardImageGalley = forwardRef(function ImageGallery(props: any, ref: any
         props.onLoadingChange(data.current.loading);
       }).catch(err => console.error(err));
     }
-
-
-
   }
+
+
   function stop() {
     data.current.stop = true;
   }
@@ -138,16 +151,18 @@ const ForwardImageGalley = forwardRef(function ImageGallery(props: any, ref: any
         }
       </Box>
 
+      <Button onClick={() => imageList.current.selectAll()}>select all</Button>
 
       {/* 图集 */}
-      <Gallery images={images} rowHeight={rowHeight} />
+      {/* <Gallery images={images} rowHeight={rowHeight} /> */}
+      <ForwardSelectableImageList ref={imageList} />
 
 
     </div>
   );
 })
 
-export default ForwardImageGalley;
+export default ForwardImageGallery;
 
 
 

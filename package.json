@@ -19,13 +19,15 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-grid-gallery": "^1.0.1-alpha.0",
-    "react-router-dom": "^6.22.1"
+    "react-router-dom": "^6.22.1",
+    "shortid": "^2.2.16"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^1.5.8",
     "@types/node": "^20.11.28",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
+    "@types/shortid": "^0.0.32",
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.0.2",
     "vite": "^5.0.0"
