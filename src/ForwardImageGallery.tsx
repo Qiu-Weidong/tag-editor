@@ -1,6 +1,6 @@
 import { useState, useRef, forwardRef, useImperativeHandle } from "react";
 import { invoke } from "@tauri-apps/api";
-import { Alert, Box, Button, Chip, FormControlLabel, FormGroup, LinearProgress } from "@mui/material";
+import { Alert, Box, Button, Chip, FormControlLabel, FormGroup, Grid, LinearProgress, Slider } from "@mui/material";
 import ForwardSelectableImageList, { SelectableImage } from "./ForwardSelectableImageList";
 import shortid from 'shortid';
 import Checkbox from '@mui/material/Checkbox';
@@ -50,6 +50,7 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
   const [labels, setLabels] = useState<{ content: string, selected: boolean, cnt: number }[]>([]);
   const [warning, setWarning] = useState('');
   const [selectedAll, setSelectedAll] = useState(false);
+  const [cols, setCols] = useState(6);
 
 
   async function loadImages(imagedir: string) {
@@ -129,55 +130,76 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
   }
 
   return (
-    <div style={{ marginLeft: 20, marginRight: 20, marginTop: 10 }}>
-      {
-        warning.length > 0 ? <Alert severity="warning">{warning}</Alert> : ''
-      }
+    <div style={{ marginLeft: 15, marginTop: 30, marginRight: 15, marginBottom: 0 }}>
+      <Grid container spacing={2} >
+        <Grid xs={7} md={8}>
+          {/* 图集 放左边 */}
+          <div style={{ display: 'flex', flexDirection: 'column', height: '88vh' }}>
 
-      {/* 过滤器 */}
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        flexWrap: 'wrap',
-        listStyle: 'none',
-        p: 0.5,
-        m: 0,
-      }} component="ul">
-        {
-          labels.map((label, id) => <li key={id} style={{ margin: 2 }}>
-            <Chip label={label.content} size="small" variant="filled" color="success"></Chip>
-          </li>)
-        }
-      </Box>
+            {/* warning 放里边 */}
+            {
+              warning.length > 0 ? <Alert severity="warning">{warning}</Alert> : ''
+            }
 
-      {/* 图集 */}
-      <div>        {
-        progress < 100 ? <LinearProgress variant="determinate" value={progress} /> :
-          <div style={{ display: 'flex', justifyContent: 'space-between', margin: 0, padding: 0, }}>
+            {/* 进度条或工具栏 */}
+            {
+              progress < 100 ? <LinearProgress variant="determinate" value={progress} /> :
+                <div style={{ display: 'flex', justifyContent: 'space-between', margin: 0, padding: 0, }}>
+                  {/* 全选按钮 */}
+                  <FormGroup style={{ alignSelf: 'flex-start' }}>
+                    <FormControlLabel control={<Checkbox color="secondary" size="small" checked={selectedAll} onChange={(e) => {
+                      // 通过 e.target.checked; 来判断是否选中 
+                      setSelectedAll(e.target.checked);
+                      if (e.target.checked) {
+                        imageList.current.selectAll();
+                      } else {
+                        imageList.current.unselectAll();
+                      }
+                    }}
+                      icon={<CheckCircleOutlineIcon />} checkedIcon={<CheckCircleIcon />} />} label={selectedAll ? "取消全选" : "全选"} />
+                  </FormGroup>
+                  {/* 占位 */}
+                  <div style={{ flexGrow: 0.9 }}></div>
+                  {/* 每行个数调节 */}
+                  <Slider
+                    size="small"
+                    value={cols}
+                    min={4}
+                    max={12}
+                    aria-label="Small"
+                    valueLabelDisplay="off"
+                    style={{ width: 100 }}
+                    onChange={(_, newValue) =>  setCols(newValue as number) }
+                  />
+                  {/* 编辑 */}
+                  <Button size="small" variant="text" endIcon={<EditNoteIcon />}>编辑</Button>
+                </div>
+            }
+            {/* 控制这一部分的高度, 使其填充满屏幕的下方 */}
+            <div style={{ flexGrow: 1, overflow: 'auto' }}>
+              <ForwardSelectableImageList cols={cols} ref={imageList} />
+            </div>
 
-            <FormGroup style={{ alignSelf: 'flex-start' }}>
-              <FormControlLabel control={<Checkbox color="secondary" checked={selectedAll} onChange={(e) => {
-                // 通过 e.target.checked; 来判断是否选中 
-                setSelectedAll(e.target.checked);
-                if (e.target.checked) {
-                  imageList.current.selectAll();
-                } else {
-                  imageList.current.unselectAll();
-                }
-              }}
-                icon={<CheckCircleOutlineIcon />} checkedIcon={<CheckCircleIcon />} />} label={selectedAll ? "取消全选" : "全选"} />
-            </FormGroup>
-            <div style={{ flexGrow: 1 }}></div>
-            <Button size="small" variant="text" endIcon={<EditNoteIcon />}>编辑</Button>
-          </div>}
+          </div>
+        </Grid>
+        {/* <Grid xs={5} md={4} style={{ height: '80vh', overflow: 'auto' }}>
+          <Box sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            listStyle: 'none',
+            p: 0.5,
+            m: 0,
+          }} component="ul">
+            {
+              labels.map((label, id) => <li key={id} style={{ margin: 2 }}>
+                <Chip label={label.content} size="small" variant="filled" color="success"></Chip>
+              </li>)
+            }
+          </Box>
+        </Grid> */}
+      </Grid></div>
 
-
-        <ForwardSelectableImageList ref={imageList} />
-      </div>
-
-
-
-    </div>
   );
 })
 

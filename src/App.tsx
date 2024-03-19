@@ -113,6 +113,7 @@ function App() {
       {/* 正式内容 */}
       <Routes>
         <Route path="/gallery" element={<ForwardImageGallery ref={gallery} onLoadingChange={setLoading} />}></Route>
+        {/* <Route path="/*" element={<Layout></Layout>}></Route> */}
       </Routes>
 
 

@@ -1,5 +1,4 @@
 import { IconButton } from '@mui/material';
-import Box from '@mui/material/Box';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -15,12 +14,12 @@ export type SelectableImage = {
 
 
 
-function SelectableImageItem(props: { select: (index: string, isSelected: boolean) => void, image: SelectableImage}) {
+function SelectableImageItem(props: { select: (index: string, isSelected: boolean) => void, image: SelectableImage }) {
   // 标记是否鼠标滑过
   const [hovered, setHovered] = useState(false);
 
   function clickImage() {
-    props.select(props.image.id, ! props.image.isSelected);
+    props.select(props.image.id, !props.image.isSelected);
   }
 
   return (<ImageListItem key={props.image.id} >
@@ -63,10 +62,10 @@ function SelectableImageItem(props: { select: (index: string, isSelected: boolea
 
 
 
-const ForwardSelectableImageList = forwardRef(function SelectableImageList(_props: {}, ref: any) {
+const ForwardSelectableImageList = forwardRef(function SelectableImageList(props: {cols: number }, ref: any) {
   useImperativeHandle(ref, () => ({
     // 暴露两个函数供父级组件调用
-    selectAll, unselectAll, getSelectedImages, setImages,getImages,getUnSelectedImages
+    selectAll, unselectAll, getSelectedImages, setImages, getImages, getUnSelectedImages
   }));
 
   const [images, setImages] = useState<SelectableImage[]>([]);
@@ -75,7 +74,7 @@ const ForwardSelectableImageList = forwardRef(function SelectableImageList(_prop
     // 一定要改变其引用
     setImages((prev) => {
       return prev.map((image) => {
-        if(image.id == index) {
+        if (image.id == index) {
           return { ...image, isSelected };
         } else {
           return image;
@@ -86,8 +85,8 @@ const ForwardSelectableImageList = forwardRef(function SelectableImageList(_prop
 
   // 暴露给父节点使用的函数
   function selectAll() {
-    setImages((prev) => 
-      prev.map((item) => { return {...item, isSelected: true}; } )
+    setImages((prev) =>
+      prev.map((item) => { return { ...item, isSelected: true }; })
     )
   }
 
@@ -107,19 +106,21 @@ const ForwardSelectableImageList = forwardRef(function SelectableImageList(_prop
   }
 
   function getUnSelectedImages() {
-    return images.filter((item) => ! item.isSelected);
+    return images.filter((item) => !item.isSelected);
   }
 
   return (
-    <Box >
-      <ImageList variant="masonry" cols={6} gap={4} style={{ marginTop: 0 }} >
+    // <div style={{ margin: 0,  overflow: 'auto', flexGrow: 1 }}>
+
+
+      <ImageList variant="masonry" cols={props.cols} gap={4} style={{ marginTop: 0 }} >
 
         {images.map((item) => (
-          <SelectableImageItem image={item} select={select} key={item.id}/>
+          <SelectableImageItem image={item} select={select} key={item.id} />
         ))}
 
       </ImageList>
-    </Box>
+    // </div>
   );
 });
 
