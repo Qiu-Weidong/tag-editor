@@ -1,14 +1,10 @@
 import { useState, useRef, forwardRef, useImperativeHandle } from "react";
 import { invoke } from "@tauri-apps/api";
-import { Alert, Box, Button, Chip, FormControlLabel, FormGroup, Grid, LinearProgress, Slider } from "@mui/material";
+import { Alert, Fab, LinearProgress } from "@mui/material";
 import ForwardSelectableImageList, { SelectableImage } from "./ForwardSelectableImageList";
 import shortid from 'shortid';
-import Checkbox from '@mui/material/Checkbox';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CaptionToolBar from "./ForwardCaptionList";
 import EditNoteIcon from '@mui/icons-material/EditNote';
-
-
 
 function dumplicated(arr: string[]): string[] {
   let result: Set<string> = new Set();
@@ -37,19 +33,18 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
 
 
   // 相当于在这里定义页面相关的数据, 和渲染无关,无需设置为state
-  const data = useRef<{ loading: boolean, stop: boolean, images: { src: string, width: number, height: number, id: number }[], labels: Map<string, number> }>({
+  const data = useRef<{ loading: boolean, stop: boolean, images: { src: string, width: number, height: number, id: number }[], labels: { content: string, cnt: number }[] }>({
     loading: false, stop: false,
     images: [],
-    labels: new Map<string, number>(),
+    labels: [],
   });
 
 
   // 进度条
   const [progress, setProgress] = useState(100);
   // 展示的标签
-  const [labels, setLabels] = useState<{ content: string, selected: boolean, cnt: number }[]>([]);
+  // const [labels, setLabels] = useState<{ content: string, selected: boolean, cnt: number }[]>([]);
   const [warning, setWarning] = useState('');
-  const [selectedAll, setSelectedAll] = useState(false);
   const [cols, setCols] = useState(6);
 
 
@@ -57,7 +52,7 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
     // 清空原始数据
     imageList.current.setImages([]);
     data.current.images = [];
-    data.current.labels.clear();
+    data.current.labels = [];
 
     // 第一步,获取所有的图片路径
     let image_path_list: { extension: string, filename: string, filepath: string, stem: string }[] = await invoke("glob_images", { imagedir });
@@ -76,6 +71,8 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
 
     let current = 0;
 
+    const _labels = new Map<string, number>();
+
     // 加载所有图片的缩略图和标签
     for (const imagePath of image_path_list) {
       // 这里返回的数据不包含 id
@@ -92,12 +89,9 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
       // 加载字幕
       for (const caption of image.captions) {
         // 统计标签的频率
-        const cnt = (data.current.labels.get(caption) || 0) + 1;
-        data.current.labels.set(caption, cnt);
+        const cnt = (_labels.get(caption) || 0) + 1;
+        _labels.set(caption, cnt);
       }
-      // 更新界面, 即更新 state
-      setLabels(Array.from(data.current.labels.entries()).map(([content, cnt]) => { return { content, cnt, selected: false } }));
-
 
       current += 1;
       setProgress(current / total * 100);
@@ -109,6 +103,10 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
         break;
       }
 
+    }
+
+    for(const [content, cnt] of _labels.entries()) {
+      data.current.labels.push({ content, cnt });
     }
   }
 
@@ -130,75 +128,32 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
   }
 
   return (
-    <div style={{ marginLeft: 15, marginTop: 30, marginRight: 15, marginBottom: 0 }}>
-      <Grid container spacing={2} >
-        <Grid xs={7} md={8}>
-          {/* 图集 放左边 */}
-          <div style={{ display: 'flex', flexDirection: 'column', height: '88vh' }}>
+    <div style={{ marginLeft: 0, marginTop: 10, marginRight: 0, marginBottom: 0, border: 0 }}>
 
-            {/* warning 放里边 */}
-            {
-              warning.length > 0 ? <Alert severity="warning">{warning}</Alert> : ''
-            }
+      {/* warning 放里边 */}
+      {
+        warning.length > 0 ? <Alert severity="warning">{warning}</Alert> : ''
+      }
 
-            {/* 进度条或工具栏 */}
-            {
-              progress < 100 ? <LinearProgress variant="determinate" value={progress} /> :
-                <div style={{ display: 'flex', justifyContent: 'space-between', margin: 0, padding: 0, }}>
-                  {/* 全选按钮 */}
-                  <FormGroup style={{ alignSelf: 'flex-start' }}>
-                    <FormControlLabel control={<Checkbox color="secondary" size="small" checked={selectedAll} onChange={(e) => {
-                      // 通过 e.target.checked; 来判断是否选中 
-                      setSelectedAll(e.target.checked);
-                      if (e.target.checked) {
-                        imageList.current.selectAll();
-                      } else {
-                        imageList.current.unselectAll();
-                      }
-                    }}
-                      icon={<CheckCircleOutlineIcon />} checkedIcon={<CheckCircleIcon />} />} label={selectedAll ? "取消全选" : "全选"} />
-                  </FormGroup>
-                  {/* 占位 */}
-                  <div style={{ flexGrow: 0.9 }}></div>
-                  {/* 每行个数调节 */}
-                  <Slider
-                    size="small"
-                    value={cols}
-                    min={4}
-                    max={12}
-                    aria-label="Small"
-                    valueLabelDisplay="off"
-                    style={{ width: 100 }}
-                    onChange={(_, newValue) =>  setCols(newValue as number) }
-                  />
-                  {/* 编辑 */}
-                  <Button size="small" variant="text" endIcon={<EditNoteIcon />}>编辑</Button>
-                </div>
-            }
-            {/* 控制这一部分的高度, 使其填充满屏幕的下方 */}
-            <div style={{ flexGrow: 1, overflow: 'auto' }}>
-              <ForwardSelectableImageList cols={cols} ref={imageList} />
-            </div>
+      {/* 进度条或工具栏 */}
+      {
+        progress < 100 ? <LinearProgress variant="determinate" value={progress} /> : <CaptionToolBar labels={data.current.labels} onSelectAll={(selectall) => {
+          if(selectall) { imageList.current.selectAll(); } else { imageList.current.unselectAll(); }
+        }} onChangeCols={(cols) => setCols(cols) }
+        
+        />
+      }
 
-          </div>
-        </Grid>
-        {/* <Grid xs={5} md={4} style={{ height: '80vh', overflow: 'auto' }}>
-          <Box sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            listStyle: 'none',
-            p: 0.5,
-            m: 0,
-          }} component="ul">
-            {
-              labels.map((label, id) => <li key={id} style={{ margin: 2 }}>
-                <Chip label={label.content} size="small" variant="filled" color="success"></Chip>
-              </li>)
-            }
-          </Box>
-        </Grid> */}
-      </Grid></div>
+      <ForwardSelectableImageList cols={cols} variant="masonry" ref={imageList} />
+
+
+      {
+        progress < 100 ? '' : <Fab color="secondary" variant="extended" aria-label="edit" style={{ position: 'fixed', right: 10, bottom: 10 }}>
+          编辑已选图片
+          <EditNoteIcon />
+        </Fab>
+      }
+    </div>
 
   );
 })

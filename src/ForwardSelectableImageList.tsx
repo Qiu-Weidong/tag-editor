@@ -62,7 +62,7 @@ function SelectableImageItem(props: { select: (index: string, isSelected: boolea
 
 
 
-const ForwardSelectableImageList = forwardRef(function SelectableImageList(props: {cols: number }, ref: any) {
+const ForwardSelectableImageList = forwardRef(function SelectableImageList(props: {cols: number, variant: 'woven' | 'masonry' }, ref: any) {
   useImperativeHandle(ref, () => ({
     // 暴露两个函数供父级组件调用
     selectAll, unselectAll, getSelectedImages, setImages, getImages, getUnSelectedImages
@@ -91,10 +91,9 @@ const ForwardSelectableImageList = forwardRef(function SelectableImageList(props
   }
 
   function unselectAll() {
-    setImages((prev) => {
-      prev.forEach((item) => item.isSelected = false);
-      return prev;
-    });
+    setImages((prev) => 
+      prev.map((item) => { return { ...item, isSelected: false }; })
+    )
   }
 
   function getSelectedImages() {
@@ -110,8 +109,6 @@ const ForwardSelectableImageList = forwardRef(function SelectableImageList(props
   }
 
   return (
-    // <div style={{ margin: 0,  overflow: 'auto', flexGrow: 1 }}>
-
 
       <ImageList variant="masonry" cols={props.cols} gap={4} style={{ marginTop: 0 }} >
 
