@@ -8,6 +8,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import { Route, Routes, useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api";
 import ForwardImageGallery from "./ForwardImageGallery";
+import SettingsIcon from '@mui/icons-material/Settings';
 
 
 
@@ -66,6 +67,10 @@ function App() {
 
           <IconButton onClick={() => navigate("/")}>
             <HomeIcon />
+          </IconButton>
+
+          <IconButton >
+            <SettingsIcon />
           </IconButton>
 
           {/* 刷新按钮 */}

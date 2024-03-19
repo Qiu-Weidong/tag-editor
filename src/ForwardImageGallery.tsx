@@ -78,8 +78,10 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
       // 这里返回的数据不包含 id
       const image: { src: string, width: number, height: number, captions: string[] } = await invoke("load_image", { imagePath: imagePath.filepath, rowHeight, captionExt: 'txt' });
 
+      // 给图片分配一个 id
       const image_id = shortid.generate();
-
+      
+      // const _image = { src: image.src, captions: image.captions, id: image_id, isSelected: false };
       // 完整的数据保存在这里, images 中保存过滤得到的数据
       data.current.images.push({ ...image, id: current });
       const current_image: SelectableImage = { src: image.src, isSelected: false, id: image_id };
