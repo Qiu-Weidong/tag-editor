@@ -38,6 +38,8 @@ export default function CaptionToolBar(props: {
 
   // 获取所有标签并排序
   const labels = useSelector((state: RootState) => state.images.labels);
+  const labelMap = new Map<string, number>([]);
+  labels.forEach((label) => labelMap.set(label.content, label.frequency));
 
   // 已选标签初始化为空
   const [selectedLabels, setSelectedLabels] = useState<LabelState[]>([]);
@@ -91,7 +93,11 @@ export default function CaptionToolBar(props: {
               return <TextField {...params} label="检索标签" variant="standard" />
             }} style={{ flexGrow: 0.8 }}
               options={selectableLabels}
-              onChange={(_e: any) => { /**注意检查是否为空, 如果不为空则选择 e.target.value 这个标签 */ console.log(_e) }}
+              onChange={(_, value) => { /**注意检查是否为空, 如果不为空则选择 e.target.value 这个标签 */  
+                if(value) {
+                  onLabelSelected(value);
+                }
+              }}
               getOptionLabel={(label) => label.content} size='small'></Autocomplete>
 
             {/* 排序方式 */}
