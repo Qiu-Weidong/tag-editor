@@ -14,6 +14,7 @@ import { push, back, forward, setProcessState } from "./app/imageDirSlice";
 import { clearImageList, pushImage, setLabels } from "./app/imageListSlice";
 import shortid from "shortid";
 import { ImageState, LabelState } from "./app/imageListSlice";
+import { push as pushAlert, clearAlerts } from "./app/alertMsgSlice";
 
 
 export default function Header() {
@@ -26,21 +27,38 @@ export default function Header() {
   const forwarddir = useSelector((state: RootState) => state.imagedir.cachedReturnDir[state.imagedir.cachedReturnDir.length - 1] || null);
 
 
-  const ctl = useRef<{loading: boolean, stop: boolean}>({ loading: false, stop: false });
+  const ctl = useRef<{ loading: boolean, stop: boolean }>({ loading: false, stop: false });
   const [loading, setLoading] = useState(ctl.current.loading);
   const [disableTextField, setDisableTextField] = useState(true);
   const [errinfo, setErrInfo] = useState({ error: false, helperText: "" });
   const [inputValue, setInputValue] = useState(imagedir);
 
 
-  
+
 
   const rowHeight = 180;
 
 
   useEffect(() => {
-    refresh();
+    refresh(imagedir);
   }, []);
+
+
+
+  function checkStem(image_path_list: { extension: string, filename: string, filepath: string, stem: string }[]) {
+    const counter = new Map<string, number>([]) ;
+    for(const imagePath of image_path_list) {
+      counter.set(imagePath.stem, (counter.get(imagePath.stem) || 0)+1);
+    }
+    for(const [stem, cnt] of counter.entries()) {
+      if(cnt > 1) {
+        dispatch(pushAlert({
+          severity: 'warning',
+          message: `there are more than one '${stem}' in the directory.`
+        }));
+      }
+    }
+  }
 
   async function loadImages(imagedir: string) {
     // 第一步清空原始数据
@@ -48,6 +66,10 @@ export default function Header() {
 
 
     const image_path_list: { extension: string, filename: string, filepath: string, stem: string }[] = await invoke("glob_images", { imagedir });
+    // 这里就可以检查 stem 是否唯一, 不唯一则发出警告
+    checkStem(image_path_list);
+
+
     let current = 0;
     const total = image_path_list.length;
     const _labels = new Map<string, number>();
@@ -58,8 +80,8 @@ export default function Header() {
 
       // 给图片分配一个 id
       const image_id = shortid.generate();
-      
-      const _image: ImageState = { src: image.src, captions: image.captions, id: image_id, isSelected: false };
+
+      const _image: ImageState = { src: image.src, captions: image.captions, id: image_id, isSelected: false, isFiltered: true };
       dispatch(pushImage(_image));
 
       for (const caption of image.captions) {
@@ -83,7 +105,7 @@ export default function Header() {
 
     // 将 _labels 转换为数组 
     const labels: LabelState[] = []
-    for(const [label, frequency] of _labels.entries()) {
+    for (const [label, frequency] of _labels.entries()) {
       labels.push({
         content: label,
         frequency,
@@ -94,20 +116,14 @@ export default function Header() {
     dispatch(setLabels(labels));
   }
 
-  function refresh() {
-    console.log('refresh');
+  function refresh(imagedir: string) {
     if (!ctl.current.loading && imagedir) {
-      console.log('进入了加载', imagedir);
       setLoading(true);
       ctl.current.loading = true;
-      
-      
       loadImages(imagedir).then(() => {
         setLoading(false);
         ctl.current.loading = false;
       }).catch(err => console.error(err));
-    } else {
-      console.log('refresh 没有加载')
     }
   }
 
@@ -128,7 +144,7 @@ export default function Header() {
 
       setDisableTextField(true);
       dispatch(push(inputValue));
-      refresh();
+      refresh(inputValue);
 
     }).catch((err: string) => {
       setErrInfo({
@@ -143,27 +159,32 @@ export default function Header() {
   return (<AppBar position="fixed" color="default"  >
     <Toolbar variant="dense" >
       {/* 返回按钮 */}
-      <IconButton disabled={lastdir === null} onClick={() => {
+      <IconButton disabled={(lastdir === null) || loading} onClick={() => {
         dispatch(back());
         if (lastdir) {
           setInputValue(lastdir);
-          refresh();
+          refresh(lastdir);
         }
       }}>
         <ChevronLeftIcon />
       </IconButton>
 
-      <IconButton disabled={forwarddir === null} onClick={() => {
+      <IconButton disabled={(forwarddir === null) || loading} onClick={() => {
         dispatch(forward());
-        if(forwarddir) {
+        if (forwarddir) {
           setInputValue(forwarddir);
-          refresh();
+          refresh(forwarddir);
         }
       }} >
         <ChevronRightIcon />
       </IconButton>
 
-      <IconButton onClick={() => navigate("/")}>
+      <IconButton onClick={() => {
+        // 会主页之间要先将没有加载完成的stop了
+        stoploading();
+        dispatch(clearAlerts());
+        navigate("/");
+      }}>
         <HomeIcon />
       </IconButton>
 
@@ -173,7 +194,7 @@ export default function Header() {
 
       {/* 刷新按钮 */}
       {
-        !loading ? <IconButton disabled={!disableTextField} onClick={refresh}>
+        !loading ? <IconButton disabled={!disableTextField} onClick={() => refresh(imagedir)}>
           <RefreshIcon />
         </IconButton> : <IconButton onClick={stoploading}>
           <CloseIcon />
@@ -189,7 +210,7 @@ export default function Header() {
           endAdornment: <InputAdornment position="end">
             {
               disableTextField ?
-                <Button onClick={() => setDisableTextField(false)}>修改</Button> :
+                <Button disabled={ctl.current.loading} onClick={() => setDisableTextField(false)}>修改</Button> :
                 <Button onClick={() => check_path()}>完成</Button>
             }
           </InputAdornment>

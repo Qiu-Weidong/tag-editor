@@ -1,7 +1,7 @@
 import { Toolbar } from "@mui/material";
 import { Route, Routes } from "react-router-dom";
 import Header from "./Header";
-import SelectableImageList from "./SelectableImageList";
+import ImageGallery from "./ImageGallery";
 
 
 
@@ -20,7 +20,7 @@ function App() {
 
       {/* 正式内容 */}
       <Routes>
-        <Route path="/gallery" element={<SelectableImageList cols={6}/>}></Route>
+        <Route path="/gallery" element={<ImageGallery />}></Route>
       </Routes>
 
 

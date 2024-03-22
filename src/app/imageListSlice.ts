@@ -5,6 +5,7 @@ export interface ImageState {
   src: string,
   id: string,
   isSelected: boolean,
+  isFiltered: boolean,
   captions: string[],
 };
 
@@ -63,9 +64,37 @@ export const imageListSlice = createSlice({
       state.labels = action.payload;
     },
 
-    // removeCaption: (state, action: PayloadAction<string>) => { state.captions = state.captions.filter((caption) => caption !== action.payload) },
-    // setCaption: (state, action: PayloadAction<string[]>) => { state.captions = action.payload },
+    setImageList: (state, action: PayloadAction<ImageState[]>) => { state.images = action.payload; },
 
+    selectAllImages: (state) => {
+      state.images = state.images.map((image) => ({ ...image, isSelected: true}));
+    },
+
+    unselectAllImages: (state) => {
+      state.images = state.images.map((image) => ({ ...image, isSelected: true}));
+    },
+
+
+    selectAllFilteredImages: (state) => {
+      // 将 isFiltered 的图片全部设为 selected
+      state.images = state.images.map(image => {
+        if(image.isFiltered) {
+          return { ...image, isSelected: true };
+        } else { return image; }
+      });
+    },
+
+    unselectAllFilteredImages: (state) => {
+      // 将 isFiltered 的图片全部设置为 false
+      state.images = state.images.map(image => {
+        if(image.isFiltered) {
+          return { ...image, isSelected: false };
+        }
+        else {
+          return image;
+        }
+      });
+    },
   }
 });
 
@@ -73,6 +102,6 @@ export const imageListSlice = createSlice({
 export default imageListSlice.reducer;
 
 // 导出 actions
-export const { pushImage, selectImage, unselectImage, removeImage, clearImageList, setLabels } = imageListSlice.actions;
+export const { pushImage, selectImage, unselectImage, removeImage, clearImageList, setLabels, selectAllFilteredImages, unselectAllFilteredImages, setImageList } = imageListSlice.actions;
 
 

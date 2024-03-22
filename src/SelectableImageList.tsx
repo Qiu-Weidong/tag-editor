@@ -1,5 +1,4 @@
 import { useState } from "react";
-// import { ImageState } from "./app/imageListSlice";
 import { IconButton, ImageList, ImageListItem } from "@mui/material";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useDispatch } from "react-redux";
@@ -61,7 +60,8 @@ function SelectableImageItem(props: { imageid: string }) {
 
 
 export default function SelectableImageList(props: { cols: number }) {
-  const images = useSelector((state: RootState) => state.images.images);
+  // 注意,这里应该得到过滤之后的结果
+  const images = useSelector((state: RootState) => state.images.images.filter(image => image.isFiltered));
 
   return (
     <ImageList variant="masonry" cols={props.cols} gap={4} style={{ marginTop: 0 }} >

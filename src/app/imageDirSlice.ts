@@ -6,9 +6,7 @@ export interface ImageDirState {
   historyDir: string[], // 历史路径
   cachedReturnDir: string[], // 缓存路径
 
-  // loading: boolean,
-  // stop: boolean,
-  process: number,
+  progress: number,
 };
 
 const initialState: ImageDirState = {
@@ -16,7 +14,7 @@ const initialState: ImageDirState = {
   historyDir: [],
   cachedReturnDir: [],
   
-  process: 0,
+  progress: 0,
 };
 
 export const imageDirSlice = createSlice({
@@ -24,12 +22,18 @@ export const imageDirSlice = createSlice({
   initialState,
   reducers: {
     push: (state, action: PayloadAction<string>) => {
+      // 首先判断 state.currentDir 是否和 action 相同
+      if(state.currentDir === action.payload) {
+        return;
+      }
+
       // 获取栈顶的元素
       const last = state.historyDir[state.historyDir.length-1];
       if(state.currentDir && last != state.currentDir) { 
         state.historyDir = [...state.historyDir, state.currentDir];
       }
       state.currentDir = action.payload;
+      state.cachedReturnDir = [];
     },
 
     back: (state) => {
@@ -41,9 +45,6 @@ export const imageDirSlice = createSlice({
         state.currentDir = state.historyDir[state.historyDir.length-1];
         state.historyDir = state.historyDir.slice(0, -1);
       }
-
-      console.log('history:', state.historyDir);
-      console.log('current:', state.currentDir);
     },
 
     forward: (state) => {
@@ -56,8 +57,7 @@ export const imageDirSlice = createSlice({
       }
     },
 
-    // setLoadingState: (state, action: PayloadAction<boolean>) => { state.loading = action.payload; },
-    setProcessState: (state, action: PayloadAction<number>) => { state.process = action.payload; },
+    setProcessState: (state, action: PayloadAction<number>) => { state.progress = action.payload; },
   }
 });
 
