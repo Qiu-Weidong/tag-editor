@@ -70,7 +70,7 @@ function CaptionToolBar(props: {
             {/* 自动补全 */}
             <Autocomplete renderInput={(params) => {
               return <TextField {...params} label="检索标签" variant="standard" />
-            }} style={{ minWidth: 500 }}
+            }} style={{ flexGrow: 0.8 }}
               options={props.labels}
               onChange={(_e: any) => { /**注意检查是否为空, 如果不为空则选择 e.target.value 这个标签 */ }}
               getOptionLabel={(label) => label.content} size='small'></Autocomplete>

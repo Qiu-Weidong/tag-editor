@@ -1,9 +1,13 @@
 import { Button, InputAdornment, TextField } from "@mui/material";
 import { invoke } from "@tauri-apps/api";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { push } from "./app/imageDirSlice";
 
 function Start() {
+  const dispatch = useDispatch();
+
   const [path, setPath] = useState("");
   const [errinfo, setErrInfo] = useState({ error: false, helperText: "" });
 
@@ -16,8 +20,8 @@ function Start() {
         helperText: ''
       });
 
-      // 将路径保存在 localStorage 中。
-      localStorage.setItem('path', path);
+      // 将路径保存在 redux 中
+      dispatch(push(path));
 
       // 跳转, 直接从这里跳转到 gallery
       navigate("/app/gallery");

@@ -43,9 +43,8 @@ const ForwardImageGallery = forwardRef(function ImageGallery(props: any, ref: an
   // 进度条
   const [progress, setProgress] = useState(100);
   // 展示的标签
-  // const [labels, setLabels] = useState<{ content: string, selected: boolean, cnt: number }[]>([]);
   const [warning, setWarning] = useState('');
-  const [cols, setCols] = useState(6);
+  const [cols, setCols] = useState(8);
 
 
   async function loadImages(imagedir: string) {
