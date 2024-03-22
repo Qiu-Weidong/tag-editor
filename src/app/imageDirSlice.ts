@@ -6,7 +6,7 @@ export interface ImageDirState {
   historyDir: string[], // 历史路径
   cachedReturnDir: string[], // 缓存路径
 
-  loading: boolean,
+  // loading: boolean,
   // stop: boolean,
   process: number,
 };
@@ -15,8 +15,7 @@ const initialState: ImageDirState = {
   currentDir: null,
   historyDir: [],
   cachedReturnDir: [],
-  loading: false,
-  // stop: false,
+  
   process: 0,
 };
 
@@ -57,7 +56,7 @@ export const imageDirSlice = createSlice({
       }
     },
 
-    setLoadingState: (state, action: PayloadAction<boolean>) => { state.loading = action.payload; },
+    // setLoadingState: (state, action: PayloadAction<boolean>) => { state.loading = action.payload; },
     setProcessState: (state, action: PayloadAction<number>) => { state.process = action.payload; },
   }
 });
@@ -66,7 +65,7 @@ export const imageDirSlice = createSlice({
 
 
 export default imageDirSlice.reducer;
-export const { push, back, forward, setLoadingState, setProcessState } = imageDirSlice.actions;
+export const { push, back, forward, setProcessState } = imageDirSlice.actions;
 
 
 

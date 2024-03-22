@@ -6,11 +6,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "./app/store";
 import { invoke } from "@tauri-apps/api";
-import { push, back, forward, setLoadingState, setProcessState } from "./app/imageDirSlice";
+import { push, back, forward, setProcessState } from "./app/imageDirSlice";
 import { clearImageList, pushImage, setLabels } from "./app/imageListSlice";
 import shortid from "shortid";
 import { ImageState, LabelState } from "./app/imageListSlice";
@@ -26,13 +26,21 @@ export default function Header() {
   const forwarddir = useSelector((state: RootState) => state.imagedir.cachedReturnDir[state.imagedir.cachedReturnDir.length - 1] || null);
 
 
-  const [loading, setLoading] = useState(false);
+  const ctl = useRef<{loading: boolean, stop: boolean}>({ loading: false, stop: false });
+  const [loading, setLoading] = useState(ctl.current.loading);
   const [disableTextField, setDisableTextField] = useState(true);
   const [errinfo, setErrInfo] = useState({ error: false, helperText: "" });
   const [inputValue, setInputValue] = useState(imagedir);
 
-  const stop = useRef<boolean>(false);
+
+  
+
   const rowHeight = 180;
+
+
+  useEffect(() => {
+    refresh();
+  }, []);
 
   async function loadImages(imagedir: string) {
     // 第一步清空原始数据
@@ -64,8 +72,8 @@ export default function Header() {
       dispatch(setProcessState(current / total * 100))
 
       // 增加一个检查是否中止的逻辑.
-      if (stop.current) {
-        stop.current = false;
+      if (ctl.current.stop) {
+        ctl.current.stop = false;
         dispatch(setProcessState(current / total * 100))
         break;
       }
@@ -87,19 +95,25 @@ export default function Header() {
   }
 
   function refresh() {
-    if (!loading && imagedir) {
+    console.log('refresh');
+    if (!ctl.current.loading && imagedir) {
+      console.log('进入了加载', imagedir);
       setLoading(true);
-      dispatch(setLoadingState(true));
+      ctl.current.loading = true;
+      
+      
       loadImages(imagedir).then(() => {
         setLoading(false);
-        dispatch(setLoadingState(false));
+        ctl.current.loading = false;
       }).catch(err => console.error(err));
+    } else {
+      console.log('refresh 没有加载')
     }
   }
 
 
   function stoploading() {
-    stop.current = true;
+    ctl.current.stop = true;
   }
 
 
