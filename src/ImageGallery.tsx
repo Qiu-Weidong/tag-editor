@@ -5,7 +5,6 @@ import { RootState } from "./app/store";
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import SelectableImageList from "./SelectableImageList";
 import CaptionToolBar from "./CaptionToolBar";
-import { selectAllFilteredImages, unselectAllFilteredImages } from "./app/imageListSlice";
 import { useDispatch } from "react-redux";
 import { deletebyindex } from "./app/alertMsgSlice";
 
@@ -30,15 +29,6 @@ export default function ImageGallery() {
     {/* 进度条或工具栏 */}
     {
       progress < 100 ? <LinearProgress variant="determinate" value={progress} /> : <CaptionToolBar 
-        // 我只能够全选过滤得到的
-        onSelectAll={(selectall) => {
-          if(selectall) {
-            // 将所有过滤得到的图片全选
-            dispatch(selectAllFilteredImages());
-          } else {
-            dispatch(unselectAllFilteredImages());
-          }
-        }} 
         onChangeCols={(cols) => setCols(cols)} />
     }
 

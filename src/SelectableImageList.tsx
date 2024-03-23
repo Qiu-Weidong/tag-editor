@@ -64,13 +64,18 @@ export default function SelectableImageList(props: { cols: number }) {
   const images = useSelector((state: RootState) => state.images.images.filter(image => image.isFiltered));
 
   return (
-    <ImageList variant="masonry" cols={props.cols} gap={4} style={{ marginTop: 0 }} >
+    <>
+      {
+        images.length > 0 ? <ImageList variant="masonry" cols={props.cols} gap={4} style={{ marginTop: 0 }} >
 
-        {images.map((item) => (
-          <SelectableImageItem imageid={item.id} key={item.id} />
-        ))}
+          {images.map((item) => (
+            <SelectableImageItem imageid={item.id} key={item.id} />
+          ))}
 
-      </ImageList>
+        </ImageList> : '没有可展示的图片'
+      }
+
+    </>
   );
 }
 

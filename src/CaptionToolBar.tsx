@@ -1,22 +1,24 @@
-import { Autocomplete, Avatar, Button, Checkbox, Chip, FormControl, FormControlLabel, FormGroup, IconButton, InputLabel, MenuItem, Select, Slider, TextField } from "@mui/material";
+import { Autocomplete, Avatar, Button, Chip, FormControl, IconButton, InputLabel, MenuItem, Select, Slider, TextField } from "@mui/material";
 import { useState } from "react";
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import DoDisturbIcon from '@mui/icons-material/DoDisturb';
 import { useSelector } from "react-redux";
 import { RootState } from "./app/store";
 import { LabelState } from "./app/imageListSlice";
 import { useDispatch } from "react-redux";
-import { setImageList } from "./app/imageListSlice"; 
+import { setImageList } from "./app/imageListSlice";
+import Divider from '@mui/material/Divider';
+import { SelectAllOutlined } from "@mui/icons-material";
+import { selectAllFilteredImages, unselectAllFilteredImages } from "./app/imageListSlice";
 
 
 
 
 export default function CaptionToolBar(props: {
-  onSelectAll: (selectedAll: boolean) => void, // 点击全选按钮时候触发
   onChangeCols: (cols: number) => void,
 }) {
   // 过滤的时候要用
@@ -25,7 +27,6 @@ export default function CaptionToolBar(props: {
 
 
   const [showCaptionFilter, setShowCaptionFilter] = useState(false);
-  const [selectedAll, setSelectedAll] = useState(false);
   const [sortMethod, setSortMethod] = useState(0);
 
   // 排序方法
@@ -49,15 +50,8 @@ export default function CaptionToolBar(props: {
     <div>
       {/* 工具按钮, 如全选,设置列数等 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 0, padding: 0, }}>
-        {/* 全选按钮 */}
-        <FormGroup style={{ alignSelf: 'flex-start' }}>
-          <FormControlLabel control={<Checkbox color="secondary" size="small" checked={selectedAll} onChange={(e) => {
-            // 通过 e.target.checked; 来判断是否选中 
-            setSelectedAll(e.target.checked);
-            props.onSelectAll(e.target.checked);
-          }}
-            icon={<CheckCircleOutlineIcon />} checkedIcon={<CheckCircleIcon />} />} label="全选" />
-        </FormGroup>
+        <Button color="info" size="small" startIcon={ <SelectAllOutlined /> } onClick={() =>  dispatch(selectAllFilteredImages()) } >全选</Button>
+        <Button color="info" size="small" startIcon={ <DoDisturbIcon /> } onClick={() =>  dispatch(unselectAllFilteredImages())}>全部取消</Button>
         {/* 占位 */}
         <div style={{ flexGrow: 0.9 }}></div>
         {/* 每行个数调节 */}
@@ -71,9 +65,14 @@ export default function CaptionToolBar(props: {
           style={{ width: 100 }}
           onChange={(_, newValue) => props.onChangeCols(newValue as number)}
         />
-        {/* 编辑 */}
-        {/* <Button size="small" variant="text" endIcon={<EditNoteIcon />}>编辑已选图片</Button> */}
-        <Button size="small" variant="text" endIcon={<VisibilityIcon />}>查看选中图片</Button>
+        <Button size="small" variant="text" endIcon={<FilterAltIcon />} onClick={() => {
+          updateImageListAndSelectableLabels(selectedLabels);
+        }}>查看过滤图片</Button>
+        <Button size="small" variant="text" endIcon={<VisibilityIcon />} onClick={() => {
+          const _images = images.map(image => ({ ...image, isFiltered: image.isSelected }));
+          dispatch(setImageList(_images));
+        }}>查看选中图片</Button>
+        
         <Button size="small" variant="text" onClick={() => setShowCaptionFilter((prev) => !prev)}
           endIcon={!showCaptionFilter ? <ExpandMoreIcon /> : <ExpandLessIcon />}>根据标签过滤</Button>
       </div>
@@ -93,8 +92,8 @@ export default function CaptionToolBar(props: {
               return <TextField {...params} label="检索标签" variant="standard" />
             }} style={{ flexGrow: 0.8 }}
               options={selectableLabels}
-              onChange={(_, value) => { /**注意检查是否为空, 如果不为空则选择 e.target.value 这个标签 */  
-                if(value) {
+              onChange={(_, value) => { /**注意检查是否为空, 如果不为空则选择 e.target.value 这个标签 */
+                if (value) {
                   onLabelSelected(value);
                 }
               }}
@@ -108,7 +107,7 @@ export default function CaptionToolBar(props: {
                 id="demo-simple-select-standard"
                 value={sortMethod}
 
-                onChange={(e) => { 
+                onChange={(e) => {
                   const index = e.target.value as number;
                   setSortMethod(index);
                   const sortMethod = sortMethodList[index];
@@ -124,38 +123,36 @@ export default function CaptionToolBar(props: {
                 <MenuItem value={3}>字典(升序)</MenuItem>
               </Select>
             </FormControl>
-            <IconButton size='small'> <ClearAllIcon /> </IconButton>
+            <IconButton size='small' onClick={() => { const _selectedLabels: LabelState[] = []; setSelectedLabels(_selectedLabels); updateImageListAndSelectableLabels(_selectedLabels); }}> <ClearAllIcon /> </IconButton>
           </div>
 
           {
             // 已选标签
             selectedLabels.map((label, key) => <Chip avatar={<Avatar>{label.frequency}</Avatar>} key={key} color="primary"
-              clickable variant='filled' size='small' label={label.content} onClick={() => console.log(label)} />)
+              clickable variant='filled' size='small' label={label.content} onClick={() => onLableUnselected(label)} />)
           }
-          <br />
+          {
+            selectedLabels.length > 0 ? <Divider style={{ marginTop: 2 }} /> : ''
+          }
+          
           {
             // 可选标签
             selectableLabels.map((label, key) => <Chip avatar={<Avatar>{label.frequency}</Avatar>} key={key}
-              clickable variant='outlined' size='small' label={label.content} onClick={() => onLabelSelected(label) } />)
+              clickable variant='outlined' size='small' label={label.content} onClick={() => onLabelSelected(label)} />)
           }
         </div> : ''
       }
     </div>
   );
 
-  
-  function onLabelSelected(label: LabelState) {
-    // 不要等state更新,先保存一份预先更新的 selectedLabels
-    const _selectedLabels = [...selectedLabels, label];
 
-    // 将该标签标记为选中
-    setSelectedLabels(_selectedLabels);
+  function updateImageListAndSelectableLabels(selectedLabels: LabelState[]) {
 
     // 首先设置图片
     const filteredImages = images.map(image => {
-      for(const label of _selectedLabels) {
-        if(! image.captions.includes(label.content)) {
-          return {...image, isFiltered: false};
+      for (const label of selectedLabels) {
+        if (!image.captions.includes(label.content)) {
+          return { ...image, isFiltered: false };
         }
       }
       return { ...image, isFiltered: true };
@@ -163,31 +160,41 @@ export default function CaptionToolBar(props: {
 
     // 成功设置了图片过滤
     dispatch(setImageList(filteredImages));
-    
+
     // 获取所有的过滤图片的标签,并去除已选标签
     let caption_set = new Set<string>([]);
     filteredImages.forEach(image => {
-      if(image.isFiltered) {
+      if (image.isFiltered) {
         caption_set = new Set([...caption_set, ...image.captions]);
       }
     });
 
     const _selectableLabels = [];
-    const _selectedLabelsString = _selectedLabels.map(label => label.content);
-    for(const caption of caption_set) {
-      if(! _selectedLabelsString.includes(caption)) {
-        const label = selectableLabels.find((label) => label.content === caption);
-        if(label) _selectableLabels.push(label);
+    const _selectedLabelsString = selectedLabels.map(label => label.content);
+    for (const caption of caption_set) {
+      if (!_selectedLabelsString.includes(caption)) {
+        const label = labels.find((label) => label.content === caption);
+        if (label) _selectableLabels.push(label);
       }
     }
 
     setSelectableLabels(_selectableLabels);
+  }
 
-    // 首先过滤出需要的图片
+  function onLabelSelected(label: LabelState) {
+    // 不要等state更新,先保存一份预先更新的 selectedLabels
+    const _selectedLabels = [...selectedLabels, label];
+    // 将该标签标记为选中
+    setSelectedLabels(_selectedLabels);
 
-    // 更新可选标签
+    updateImageListAndSelectableLabels(_selectedLabels);
+  }
 
-    // 过滤图片
+
+  function onLableUnselected(label: LabelState) {
+    const _selectedLabels = selectedLabels.filter(_label => _label !== label);
+    setSelectedLabels(_selectedLabels);
+    updateImageListAndSelectableLabels(_selectedLabels);
   }
 
 
