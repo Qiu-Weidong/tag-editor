@@ -16,10 +16,6 @@ import type { PayloadAction } from "@reduxjs/toolkit";
  * 
  *   src: 缩略图的base64编码
  * }
- * 
- * 缩略图 {
- *   src
- * }
  */
 
 
@@ -29,9 +25,13 @@ export interface ImageState {
   src: string,
   id: string,
   path: string,
+  filename: string,
+  captions: string[],
+
+
   isSelected: boolean,
   isFiltered: boolean,
-  captions: string[],
+  isOpen: boolean,
 };
 
 export interface LabelState {
@@ -43,13 +43,14 @@ export interface LabelState {
 interface ImageListState {
   images: ImageState[],
   labels: LabelState[],
-
+  currentOpenImage: string | undefined;
 };
 
 
 const initialState : ImageListState = {
   images: [],
   labels: [],
+  currentOpenImage: undefined,
 };
 
 
@@ -84,6 +85,38 @@ export const imageListSlice = createSlice({
         }
         else { return image; }
       });
+    },
+
+    openImage: (state, action: PayloadAction<string>) => {
+      state.images = state.images.map(image => {
+        if(image.id === action.payload) {
+          return { ...image, isOpen: true };
+        }
+        else {
+          return image;
+        }
+      });
+      state.currentOpenImage = action.payload;
+    },
+
+    openAllFilterImages: (state) => {
+      state.images = state.images.map(image => {
+        if(image.isFiltered) {
+          return { ...image, isOpen: true };
+        } else { return image; }
+      });
+    },
+
+    openAllSelectedImages: (state) => {
+      state.images = state.images.map(image => {
+        if(image.isSelected) {
+          return { ...image, isOpen: true };
+        } else { return image; }
+      });
+    },
+
+    closeAllImages: (state) => {
+      state.images = state.images.map(image => ({ ...image, isOpen: false }));
     },
 
     setLabels: (state, action: PayloadAction<LabelState[]>) => {
@@ -128,6 +161,6 @@ export const imageListSlice = createSlice({
 export default imageListSlice.reducer;
 
 // 导出 actions
-export const { pushImage, selectImage, unselectImage, removeImage, clearImageList, setLabels, selectAllFilteredImages, unselectAllFilteredImages, setImageList } = imageListSlice.actions;
+export const { openImage, closeAllImages, openAllFilterImages, openAllSelectedImages, pushImage, selectImage, unselectImage, removeImage, clearImageList, setLabels, selectAllFilteredImages, unselectAllFilteredImages, setImageList } = imageListSlice.actions;
 
 

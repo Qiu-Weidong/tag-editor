@@ -4,7 +4,6 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
-import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import DoDisturbIcon from '@mui/icons-material/DoDisturb';
 import { useSelector } from "react-redux";
 import { RootState } from "./app/store";
@@ -13,7 +12,7 @@ import { useDispatch } from "react-redux";
 import { setImageList } from "./app/imageListSlice";
 import Divider from '@mui/material/Divider';
 import { SelectAllOutlined } from "@mui/icons-material";
-import { selectAllFilteredImages, unselectAllFilteredImages } from "./app/imageListSlice";
+import { selectAllFilteredImages, unselectAllFilteredImages, openAllSelectedImages } from "./app/imageListSlice";
 
 
 
@@ -23,13 +22,10 @@ export default function CaptionToolBar(props: {
 }) {
   // 过滤的时候要用
   const images = useSelector((state: RootState) => state.images.images);
+  const labels = useSelector((state: RootState) => state.images.labels);
+
   const dispatch = useDispatch();
 
-
-  const [showCaptionFilter, setShowCaptionFilter] = useState(false);
-  const [sortMethod, setSortMethod] = useState(0);
-
-  // 排序方法
   const sortMethodList = [
     (a: LabelState, b: LabelState): number => b.frequency - a.frequency,
     (a: LabelState, b: LabelState): number => a.frequency - b.frequency,
@@ -37,12 +33,8 @@ export default function CaptionToolBar(props: {
     (a: LabelState, b: LabelState): number => a.content.localeCompare(b.content),
   ];
 
-  // 获取所有标签并排序
-  const labels = useSelector((state: RootState) => state.images.labels);
-  const labelMap = new Map<string, number>([]);
-  labels.forEach((label) => labelMap.set(label.content, label.frequency));
-
-  // 已选标签初始化为空
+  const [showCaptionFilter, setShowCaptionFilter] = useState(false);
+  const [sortMethod, setSortMethod] = useState(0);
   const [selectedLabels, setSelectedLabels] = useState<LabelState[]>([]);
   const [selectableLabels, setSelectableLabels] = useState<LabelState[]>(labels.slice().sort(sortMethodList[sortMethod]));
 
@@ -50,8 +42,8 @@ export default function CaptionToolBar(props: {
     <div>
       {/* 工具按钮, 如全选,设置列数等 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 0, padding: 0, }}>
-        <Button color="info" size="small" startIcon={ <SelectAllOutlined /> } onClick={() =>  dispatch(selectAllFilteredImages()) } >全选</Button>
-        <Button color="info" size="small" startIcon={ <DoDisturbIcon /> } onClick={() =>  dispatch(unselectAllFilteredImages())}>全部取消</Button>
+        <Button color="info" size="small" startIcon={<SelectAllOutlined />} onClick={() => dispatch(selectAllFilteredImages())} >全选</Button>
+        <Button color="info" size="small" startIcon={<DoDisturbIcon />} onClick={() => dispatch(unselectAllFilteredImages())}>全部取消</Button>
         {/* 占位 */}
         <div style={{ flexGrow: 0.9 }}></div>
         {/* 每行个数调节 */}
@@ -65,14 +57,10 @@ export default function CaptionToolBar(props: {
           style={{ width: 100 }}
           onChange={(_, newValue) => props.onChangeCols(newValue as number)}
         />
-        <Button size="small" variant="text" endIcon={<FilterAltIcon />} onClick={() => {
-          updateImageListAndSelectableLabels(selectedLabels);
-        }}>查看过滤图片</Button>
-        <Button size="small" variant="text" endIcon={<VisibilityIcon />} onClick={() => {
-          const _images = images.map(image => ({ ...image, isFiltered: image.isSelected }));
-          dispatch(setImageList(_images));
-        }}>查看选中图片</Button>
-        
+        <Button size="small" variant="text" endIcon={<VisibilityIcon />} onClick={() =>
+          dispatch(openAllSelectedImages())
+        }>查看选中图片</Button>
+
         <Button size="small" variant="text" onClick={() => setShowCaptionFilter((prev) => !prev)}
           endIcon={!showCaptionFilter ? <ExpandMoreIcon /> : <ExpandLessIcon />}>根据标签过滤</Button>
       </div>
@@ -129,12 +117,12 @@ export default function CaptionToolBar(props: {
           {
             // 已选标签
             selectedLabels.map((label, key) => <Chip avatar={<Avatar>{label.frequency}</Avatar>} key={key} color="primary"
-              clickable variant='filled' size='small' label={label.content} onClick={() => onLableUnselected(label)} />)
+              clickable variant='filled' size='small' label={label.content} onClick={() => onLableUnselected(label)} onDelete={() => onLableUnselected(label)} />)
           }
           {
             selectedLabels.length > 0 ? <Divider style={{ marginTop: 2 }} /> : ''
           }
-          
+
           {
             // 可选标签
             selectableLabels.map((label, key) => <Chip avatar={<Avatar>{label.frequency}</Avatar>} key={key}

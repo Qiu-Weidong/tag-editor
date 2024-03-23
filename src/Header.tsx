@@ -5,6 +5,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import CloseIcon from '@mui/icons-material/Close';
 import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
+import HelpIcon from '@mui/icons-material/Help';
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -36,7 +37,7 @@ export default function Header() {
 
 
 
-  const rowHeight = 180;
+  const imageWidth = 90;
 
 
   useEffect(() => {
@@ -46,12 +47,12 @@ export default function Header() {
 
 
   function checkStem(image_path_list: { extension: string, filename: string, filepath: string, stem: string }[]) {
-    const counter = new Map<string, number>([]) ;
-    for(const imagePath of image_path_list) {
-      counter.set(imagePath.stem, (counter.get(imagePath.stem) || 0)+1);
+    const counter = new Map<string, number>([]);
+    for (const imagePath of image_path_list) {
+      counter.set(imagePath.stem, (counter.get(imagePath.stem) || 0) + 1);
     }
-    for(const [stem, cnt] of counter.entries()) {
-      if(cnt > 1) {
+    for (const [stem, cnt] of counter.entries()) {
+      if (cnt > 1) {
         dispatch(pushAlert({
           severity: 'warning',
           message: `there are more than one '${stem}' in the directory.`
@@ -72,16 +73,26 @@ export default function Header() {
 
     let current = 0;
     const total = image_path_list.length;
+    // 统计标签的频率
     const _labels = new Map<string, number>();
 
     for (const imagePath of image_path_list) {
       // 这里返回的数据不包含 id
-      const image: { src: string, width: number, height: number, captions: string[] } = await invoke("load_thumbnail_with_captions", { imagePath: imagePath.filepath, rowHeight, captionExt: 'txt' });
+      const image: { src: string, width: number, height: number, filename: string, path: string, captions: string[] } = await invoke("load_thumbnail_with_captions", { imagePath: imagePath.filepath, imageWidth: imageWidth, captionExt: 'txt' });
 
       // 给图片分配一个 id
       const image_id = shortid.generate();
 
-      const _image: ImageState = { src: image.src, captions: image.captions, id: image_id, isSelected: false, isFiltered: true, path: imagePath.filepath };
+      const _image: ImageState = { 
+        src: image.src, 
+        captions:image.captions, 
+        id: image_id, 
+        isSelected: false, 
+        isFiltered: true, 
+        isOpen: false,
+        path: imagePath.filepath,
+        filename: imagePath.stem,
+      };
       dispatch(pushImage(_image));
 
       for (const caption of image.captions) {
@@ -179,6 +190,8 @@ export default function Header() {
         <ChevronRightIcon />
       </IconButton>
 
+      <IconButton ><SettingsIcon /></IconButton>
+      <IconButton> <HelpIcon /> </IconButton>
       <IconButton onClick={() => {
         // 会主页之间要先将没有加载完成的stop了
         stoploading();
@@ -186,10 +199,6 @@ export default function Header() {
         navigate("/");
       }}>
         <HomeIcon />
-      </IconButton>
-
-      <IconButton >
-        <SettingsIcon />
       </IconButton>
 
       {/* 刷新按钮 */}

@@ -55,7 +55,7 @@ struct ImagePathInfo {
 }
 
 
-fn image_to_base64(image: DynamicImage, image_fmt: image::ImageFormat) -> String {
+fn image_to_base64(image: &DynamicImage, image_fmt: image::ImageFormat) -> String {
   // 首先将 image 抓换为 Vec<u8> 的数组
   let mut buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
   image.write_to(&mut buffer, image_fmt).expect("Failed to write image");
@@ -100,7 +100,7 @@ fn check_path(path: &str) -> Result<(), String> {
 
 // 缩略图不应该使用高度来限制, 而是应该使用宽度来限制
 #[tauri::command]
-fn load_thumbnail_with_captions(image_path: &str, row_height: u32, caption_ext: &str) -> Result<ImageInfoWithCaptions, String> {
+fn load_thumbnail_with_captions(image_path: &str, image_width: u32, caption_ext: &str) -> Result<ImageInfoWithCaptions, String> {
   let image_path = Path::new(image_path);
   let stem = image_path.file_stem().unwrap().to_str().unwrap();
   let image_fmt = match image::ImageFormat::from_path(image_path) {
@@ -117,10 +117,10 @@ fn load_thumbnail_with_captions(image_path: &str, row_height: u32, caption_ext: 
   // 缩放图像, 将图像缩放到 width / height * row_height
   let width = img.width();
   let height = img.height();
-  let nwidth = ((width as f32) / (height as f32) * (row_height as f32)) as u32;
+  let nheight = ((height as f32) / (width as f32) * (image_width as f32)) as u32;
   // 不使用 resize, 改用缩略图
-  let img = img.thumbnail(nwidth, row_height);
-  let base64_str = image_to_base64(img, image_fmt);
+  let img = img.thumbnail(image_width, nheight);
+  let base64_str = image_to_base64(&img, image_fmt);
 
 
   // 读取字幕标签
@@ -147,7 +147,7 @@ fn load_thumbnail_with_captions(image_path: &str, row_height: u32, caption_ext: 
 }
 
 #[tauri::command]
-fn load_image(image_path: &str, window_width: u32, window_height: u32) -> Result<ImageInfoWithCaptions, String> {
+fn load_image(image_path: &str) -> Result<ImageInfo, String> {
   let image_path = Path::new(image_path);
   let stem = image_path.file_stem().unwrap().to_str().unwrap();
   let image_fmt = match image::ImageFormat::from_path(image_path) {
@@ -157,14 +157,18 @@ fn load_image(image_path: &str, window_width: u32, window_height: u32) -> Result
 
   // 打开图片
   let img = image::open(image_path).expect("无法打开图片");
-  if img.width() <= window_width && img.height() <= window_height {
-    // 不缩放了, 直接转 base64 并返回.
-  } else {
-    // 按照比例更大的方式缩放.
-  }
+  // 干脆不缩放了
+  let base64_str = image_to_base64(&img, image_fmt);
 
   // 不加载字幕了
-  todo!()
+  Ok(ImageInfo {
+    src: base64_str, 
+    width: img.width(),
+    height: img.height(),
+    filename: stem.to_owned(),
+    path: image_path.to_owned(),
+
+  })
 }
 
 
@@ -201,7 +205,7 @@ fn glob_images(imagedir: &str) -> Result<Vec<ImagePathInfo>, String> {
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![check_path, load_thumbnail_with_captions, glob_images])
+    .invoke_handler(tauri::generate_handler![check_path, load_thumbnail_with_captions, glob_images, load_image])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
