@@ -8,7 +8,7 @@ import CaptionToolBar from "./CaptionToolBar";
 import { useDispatch } from "react-redux";
 import { deletebyindex } from "./app/alertMsgSlice";
 import { ImageState } from "./app/imageListSlice";
-import { selectImage, unselectImage, openAllFilterImages, openImage as openOneImage } from "./app/imageListSlice";
+import { selectImage, unselectImage, openAllFilterImages } from "./app/imageListSlice";
 import LightBox from "./LightBox";
 
 
@@ -70,7 +70,6 @@ export default function ImageGallery() {
   function openImage(image: ImageState) {
     // 打开所有过滤得到的图片
     dispatch(openAllFilterImages());
-    dispatch(openOneImage(image.id));
   }
 }
 

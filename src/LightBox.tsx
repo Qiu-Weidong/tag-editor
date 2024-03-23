@@ -13,16 +13,10 @@ import { invoke } from "@tauri-apps/api";
 
 export default function LightBox() {
   const images = useSelector((state: RootState) => state.images.images.filter(image => image.isOpen));
-  const currentOpenImageId = useSelector((state: RootState) => state.images.currentOpenImage);
-  let index = images.findIndex(image => image.id === currentOpenImageId);
-  if(index < 0) index = 0;
-  if(index >= images.length) index %= images.length;
 
   const [currentImage, setCurrentImage] = useState<{ id: string, index: number, src: string } | undefined>(undefined);
   
-  if(! currentImage)
-  loadImageByIndex(index);
-  // useEffect(() =>  {loadImageByIndex(index);} , []);
+
 
   const dispath = useDispatch();
 
@@ -42,19 +36,17 @@ export default function LightBox() {
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-          <IconButton style={{ position: 'absolute', right: 0, top: 0, }}  onClick={() => 
+          <IconButton style={{ position: 'absolute', right: 15, top: 5, }}  onClick={() => 
             {dispath(closeAllImages()); setCurrentImage(undefined);}}> <CloseIcon /> </IconButton>
           
 
-          <IconButton style={{ position: 'absolute', left: 0, }} ><ChevronLeftIcon /></IconButton>
-
-          {/* <img src="https://images.unsplash.com/photo-1549388604-817d15aa0110" style={{ width: 300, }} /> */}
+          <IconButton style={{ position: 'absolute', left: 15, }} onClick={prevImage} ><ChevronLeftIcon /></IconButton>
           {
             currentImage ? <img src={currentImage.src}  style={{ maxWidth: '100%', maxHeight: '100%' }} />: <CircularProgress />
           }
           
 
-          <IconButton style={{ position: 'absolute', right: 0, }} ><ChevronRightIcon /></IconButton>
+          <IconButton style={{ position: 'absolute', right: 15, }} onClick={nextImage} ><ChevronRightIcon /></IconButton>
 
 
 
@@ -66,15 +58,27 @@ export default function LightBox() {
 
 
   async function loadImageByIndex(index: number) {
+    setCurrentImage(undefined);
+
     const image = images[index];
 
     if(! image) return;
     // 然后根据 image.path 加载原始图像
     const result: { src: string, filename: string, width: number, height: number, path: string } = await invoke("load_image", { imagePath: image.path });
-    console.log('result', result);
     setCurrentImage({
       src: result.src, id: image.id, index
     });
+  }
+
+  async function nextImage() {
+
+    const index = ((currentImage?.index ?? -1) + 1) % images.length;
+    loadImageByIndex(index);
+  }
+
+  async function prevImage() {
+    const index = ((currentImage?.index ?? 1) + images.length -1) % images.length;
+    loadImageByIndex(index);
   }
 }
 

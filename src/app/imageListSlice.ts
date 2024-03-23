@@ -43,14 +43,14 @@ export interface LabelState {
 interface ImageListState {
   images: ImageState[],
   labels: LabelState[],
-  currentOpenImage: string | undefined;
+  // currentOpenImage: string | undefined;
 };
 
 
 const initialState : ImageListState = {
   images: [],
   labels: [],
-  currentOpenImage: undefined,
+  // currentOpenImage: undefined,
 };
 
 
@@ -96,7 +96,6 @@ export const imageListSlice = createSlice({
           return image;
         }
       });
-      state.currentOpenImage = action.payload;
     },
 
     openAllFilterImages: (state) => {
