@@ -13,9 +13,6 @@ import { deletebyindex } from "./app/alertMsgSlice";
 
 export default function ImageGallery() {
   const dispatch = useDispatch();
-
-
-  // const [warning, setWarning] = useState('');
   const alerts = useSelector((state: RootState) => state.alert.alerts);
   const progress = useSelector((state: RootState) => state.imagedir.progress);
   const [cols, setCols] = useState(6);

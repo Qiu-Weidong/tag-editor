@@ -12,13 +12,38 @@ use image::DynamicImage;
 use serde::Serialize;
 
 #[derive(Serialize)]
-struct ImageInfo {
+struct ImageInfoWithCaptions {
+  // 缩略图/原图的base64编码
   src: String,
+  // 原图尺寸
   width: u32,
+  // 原图高度
   height: u32,
-  caption: String,
+  
+  // 文件名(不含后缀)
+  filename: String,
+
+  // 路径
+  path: PathBuf,
   // 标签列表, path, filestem,filename
   captions: Vec<String>,
+}
+
+
+#[derive(Serialize)]
+struct ImageInfo {
+  // 缩略图/原图的base64编码
+  src: String,
+  // 原图尺寸
+  width: u32,
+  // 原图高度
+  height: u32,
+  
+  // 文件名(不含后缀)
+  filename: String,
+
+  // 路径
+  path: PathBuf,
 }
 
 #[derive(Serialize)]
@@ -30,8 +55,6 @@ struct ImagePathInfo {
 }
 
 
-
-
 fn image_to_base64(image: DynamicImage, image_fmt: image::ImageFormat) -> String {
   // 首先将 image 抓换为 Vec<u8> 的数组
   let mut buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
@@ -40,6 +63,15 @@ fn image_to_base64(image: DynamicImage, image_fmt: image::ImageFormat) -> String
   let result = STANDARD_NO_PAD.encode(buffer);
   format!("data:image/{};base64,{}", image_fmt.extensions_str()[0], result.replace("\r\n", ""))
 }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -66,8 +98,9 @@ fn check_path(path: &str) -> Result<(), String> {
 
 
 
+// 缩略图不应该使用高度来限制, 而是应该使用宽度来限制
 #[tauri::command]
-fn load_image(image_path: &str, row_height: u32, caption_ext: &str) -> Result<ImageInfo, String> {
+fn load_thumbnail_with_captions(image_path: &str, row_height: u32, caption_ext: &str) -> Result<ImageInfoWithCaptions, String> {
   let image_path = Path::new(image_path);
   let stem = image_path.file_stem().unwrap().to_str().unwrap();
   let image_fmt = match image::ImageFormat::from_path(image_path) {
@@ -102,14 +135,38 @@ fn load_image(image_path: &str, row_height: u32, caption_ext: &str) -> Result<Im
     Err(_) => vec![],
   };
 
-  Ok(ImageInfo {
+  Ok(ImageInfoWithCaptions {
     src: base64_str, 
-    width: nwidth,
-    height: row_height,
-    caption: stem.to_owned(),
+    width,
+    height,
+    filename: stem.to_owned(),
     captions: tags,
+    path: image_path.to_owned(),
+
   })
 }
+
+#[tauri::command]
+fn load_image(image_path: &str, window_width: u32, window_height: u32) -> Result<ImageInfoWithCaptions, String> {
+  let image_path = Path::new(image_path);
+  let stem = image_path.file_stem().unwrap().to_str().unwrap();
+  let image_fmt = match image::ImageFormat::from_path(image_path) {
+    Ok(image_fmt) => image_fmt,
+    Err(_) => return Err("不是图片".to_string()),
+  };
+
+  // 打开图片
+  let img = image::open(image_path).expect("无法打开图片");
+  if img.width() <= window_width && img.height() <= window_height {
+    // 不缩放了, 直接转 base64 并返回.
+  } else {
+    // 按照比例更大的方式缩放.
+  }
+
+  // 不加载字幕了
+  todo!()
+}
+
 
 
 // 增加一个函数, 首先读取所有的图片文件名
@@ -144,7 +201,7 @@ fn glob_images(imagedir: &str) -> Result<Vec<ImagePathInfo>, String> {
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![check_path, load_image, glob_images])
+    .invoke_handler(tauri::generate_handler![check_path, load_thumbnail_with_captions, glob_images])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

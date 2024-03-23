@@ -12,9 +12,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <Provider store={ store }>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Start></Start>}></Route>
+          {/* <Route path="/" element={ <LightBox /> } ></Route> */}
+          <Route path="/" element={<Start />}></Route>
           <Route path="/app/*" element={<App />}></Route>
-          {/* <Route path="/app/*" element={<Header />}></Route> */}
         </Routes>
       </BrowserRouter>
     </Provider>

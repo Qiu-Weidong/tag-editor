@@ -1,9 +1,34 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
+
+/**
+ * ImageState {
+ *   id: string, // filename 可能存在重复，采用 id 来标识图片
+ *   filename: string, 
+ *   path: string,
+ *   captions: string[],
+ *   width: number,
+ *   height: number,
+ *   isSelected: boolean,
+ *   isFiltered: boolean,
+ *   isOpened: boolean,
+ * 
+ *   src: 缩略图的base64编码
+ * }
+ * 
+ * 缩略图 {
+ *   src
+ * }
+ */
+
+
+
+
 export interface ImageState {
   src: string,
   id: string,
+  path: string,
   isSelected: boolean,
   isFiltered: boolean,
   captions: string[],
@@ -18,6 +43,7 @@ export interface LabelState {
 interface ImageListState {
   images: ImageState[],
   labels: LabelState[],
+
 };
 
 

@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "./app/store";
 
 
+// 我需要一个 onOpen 事件以便打开图片
 function SelectableImageItem(props: { imageid: string }) {
   const image = useSelector((state: RootState) =>
     state.images.images.find((image) => image.id === props.imageid));
@@ -60,7 +61,7 @@ function SelectableImageItem(props: { imageid: string }) {
 
 
 export default function SelectableImageList(props: { cols: number }) {
-  // 注意,这里应该得到过滤之后的结果
+  // 注意,这里应该得到过滤之后的结果, 
   const images = useSelector((state: RootState) => state.images.images.filter(image => image.isFiltered));
 
   return (

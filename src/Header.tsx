@@ -76,12 +76,12 @@ export default function Header() {
 
     for (const imagePath of image_path_list) {
       // 这里返回的数据不包含 id
-      const image: { src: string, width: number, height: number, captions: string[] } = await invoke("load_image", { imagePath: imagePath.filepath, rowHeight, captionExt: 'txt' });
+      const image: { src: string, width: number, height: number, captions: string[] } = await invoke("load_thumbnail_with_captions", { imagePath: imagePath.filepath, rowHeight, captionExt: 'txt' });
 
       // 给图片分配一个 id
       const image_id = shortid.generate();
 
-      const _image: ImageState = { src: image.src, captions: image.captions, id: image_id, isSelected: false, isFiltered: true };
+      const _image: ImageState = { src: image.src, captions: image.captions, id: image_id, isSelected: false, isFiltered: true, path: imagePath.filepath };
       dispatch(pushImage(_image));
 
       for (const caption of image.captions) {
