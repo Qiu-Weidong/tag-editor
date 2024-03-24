@@ -1,9 +1,8 @@
-import { Route, Routes } from "react-router-dom";
 import Header from "./Header";
-import ImageGallery from "./page/filter/ImageGallery";
+import ImageGallery from "./ImageGallery";
 
 
-function App() {
+function Filter() {
 
 
 
@@ -14,13 +13,13 @@ function App() {
       <Header />
 
       {/* 占位 */}
-      {/* <Toolbar variant="dense"></Toolbar> */}
 
       {/* 正式内容 */}
-      <Routes>
+      {/* <Routes>
         <Route path="/gallery" element={<ImageGallery />}></Route>
         
-      </Routes>
+      </Routes> */}
+      <ImageGallery />
 
 
     </>
@@ -28,7 +27,7 @@ function App() {
 }
 
 
-export default App;
+export default Filter;
 
 
 

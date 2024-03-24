@@ -9,13 +9,13 @@ import HelpIcon from '@mui/icons-material/Help';
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "./app/store";
+import { RootState } from "../../app/store";
 import { invoke } from "@tauri-apps/api";
-import { push, back, forward, setProcessState } from "./app/imageDirSlice";
-import { clearImageList, pushImage, setLabels } from "./app/imageListSlice";
+import { push, back, forward, setProcessState, setImageLoaded } from "../../app/imageDirSlice";
+import { clearImageList, pushImage, setLabels } from "../../app/imageListSlice";
 import shortid from "shortid";
-import { ImageState, LabelState } from "./app/imageListSlice";
-import { push as pushAlert, clearAlerts } from "./app/alertMsgSlice";
+import { ImageState, LabelState } from "../../app/imageListSlice";
+import { push as pushAlert, clearAlerts } from "../../app/alertMsgSlice";
 
 
 export default function Header() {
@@ -28,16 +28,22 @@ export default function Header() {
   const forwarddir = useSelector((state: RootState) => state.imagedir.cachedReturnDir[state.imagedir.cachedReturnDir.length - 1] || null);
 
 
-  const ctl = useRef<{ loading: boolean, stop: boolean }>({ loading: false, stop: false });
+  const ctl = useRef<{ loading: boolean, stop: boolean, init: boolean }>({ loading: false, stop: false, init: true });
   const [loading, setLoading] = useState(ctl.current.loading);
   const [disableTextField, setDisableTextField] = useState(true);
   const [errinfo, setErrInfo] = useState({ error: false, helperText: "" });
   const [inputValue, setInputValue] = useState(imagedir);
 
+  const imageLoaded = useSelector((state: RootState) => state.imagedir.imageLoaded);
+  if(! imageLoaded) {
+    refresh(imagedir);
+    dispatch(setImageLoaded(true));
+  }
 
 
 
-  const imageWidth = 90;
+  const imageWidth = useSelector((state: RootState) => state.setting.thumbnailWidth);
+
   function checkStem(image_path_list: { extension: string, filename: string, filepath: string, stem: string }[]) {
     const counter = new Map<string, number>([]);
     for (const imagePath of image_path_list) {

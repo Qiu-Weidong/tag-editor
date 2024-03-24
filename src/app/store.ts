@@ -1,15 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
-import imageMapReducer from './imageListSlice';
+import imageListReducer from './imageListSlice';
 import imageDirReducer from './imageDirSlice';
 import alertMsgReducer from './alertMsgSlice';
-
+import settingsReducer from './settingsSlice';
 
 
 export const store = configureStore({
   reducer: {
-    images: imageMapReducer,
+    images: imageListReducer,
     imagedir: imageDirReducer,
     alert: alertMsgReducer,
+    setting: settingsReducer,
   },
 })
 

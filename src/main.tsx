@@ -5,7 +5,7 @@ import "./styles.css";
 import Start from "./page/start/Start";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
-import App from "./App";
+import Filter from "./page/filter/Filter";
 import CaptionEditPage from "./page/edit/CaptionEditPage";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
@@ -14,7 +14,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Start />}></Route>
-          <Route path="/app/*" element={<App />}></Route>
+          <Route path="/filter" element={<Filter />}></Route>
           <Route path="/edit" element={<CaptionEditPage />}></Route>
           <Route path="/settings" element={"settings page is coming soon."}></Route>
           <Route path="/help" element={"help page is coming soon."}></Route>

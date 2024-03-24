@@ -1,7 +1,7 @@
 import { Divider, Grid, IconButton, ImageList, ImageListItem, Paper, Stack } from "@mui/material";
 import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
-import { ImageState } from "../../app/imageListSlice";
+import { ImageState, LabelState } from "../../app/imageListSlice";
 import { useState } from "react";
 import LightBox from "../filter/LightBox";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -49,8 +49,26 @@ function ImageItem(props: {
 }
 
 
+
+
+// 将有些功能函数写在这里
 function intersection<T>(array1: T[], array2: T[]): T[] {
   return array1.filter(element => array2.includes(element));
+}
+
+function getCommonCaptionsForSelectedImages(selectedImages: ImageState[], labels: LabelState[]): LabelState[] {
+  let commonCaptions = labels.map(label => label.content);
+  selectedImages.forEach(image => commonCaptions = intersection(commonCaptions, image.captions));
+  const commonLabels = labels.filter(label => commonCaptions.includes(label.content));
+
+  return commonLabels;
+}
+
+function getTotalCaptionsForSelectedImages(selectedImages: ImageState[], labels: LabelState[]): LabelState[] {
+  let totalLabels = new Set<string>([]);
+  selectedImages.forEach(image => totalLabels = new Set([...totalLabels, ...image.captions]));
+  const _totalLabels = labels.filter(label => totalLabels.has(label.content));
+  return _totalLabels;
 }
 
 
@@ -64,11 +82,10 @@ export default function CaptionEditPage() {
 
   const [openImageIndex, setOpenImageIndex] = useState<number | undefined>(undefined);
 
-  let commonCaptions = labels.map(label => label.content);
-  images.forEach(image => commonCaptions = intersection(commonCaptions, image.captions));
-  console.log('commonCaptions', commonCaptions);
-  const commonLabels = labels.filter(label => commonCaptions.includes(label.content));
-
+  // 计算得到所有已选图片共同的标签, 所有标签的并集
+  const commonLabels = getCommonCaptionsForSelectedImages(images, labels);
+  // 所有标签的交集
+  const totalLabels = getTotalCaptionsForSelectedImages(images, labels);
 
 
 
@@ -76,14 +93,13 @@ export default function CaptionEditPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '97vh' }}>
       <Grid container spacing={0.5} style={{ flexGrow: 1, maxHeight: '100%' }}>
-        <Grid item xs={7} md={8} style={{ maxHeight: '100%',  }} >
+        <Grid item xs={7} md={8} style={{ maxHeight: '100%', }} >
           <div style={{ maxHeight: '100%', position: 'relative', height: '100%' }}>
             <Paper style={{ height: '100%', overflow: 'auto', }} elevation={8}>
               <ImageList variant="masonry" cols={8} gap={4} >
                 {
                   images.map(image => <ImageItem image={image} onImageClick={(image) => {
                     const index = images.findIndex(img => image.id === img.id);
-                    console.log('fuck you', index);
                     if (index >= 0) { setOpenImageIndex(index) }
                   }} />)
                 }
@@ -100,22 +116,36 @@ export default function CaptionEditPage() {
           </div>
 
         </Grid>
-        <Grid item xs={5} md={4} style={{ textAlign: 'center' }}>
-          <Stack
-            direction="row" justifyContent="center" spacing={2}
-            divider={<Divider orientation="vertical" flexItem />}
-          >
-            <IconButton onClick={() => navigate("/app/gallery")}><ArrowBackIcon /></IconButton>
-            <IconButton><HomeIcon /></IconButton>
-            <IconButton><SettingsIcon /></IconButton>
-            <IconButton><HelpIcon /></IconButton>
-            <IconButton><FilterAltIcon /></IconButton>
-          </Stack>
+        <Grid item xs={5} md={4} style={{ maxHeight: '100%' }}>
+          <div style={{ maxHeight: '100%', height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+            <Stack
+              direction="row" justifyContent="center" spacing={2}
+              divider={<Divider orientation="vertical" flexItem />}
+            >
+              <IconButton onClick={() => navigate("/filter")}><ArrowBackIcon /></IconButton>
+              <IconButton onClick={() => navigate("/")}><HomeIcon /></IconButton>
+              <IconButton onClick={() => navigate("/settings")}><SettingsIcon /></IconButton>
+              <IconButton onClick={() => navigate("/help")}><HelpIcon /></IconButton>
+              <IconButton onClick={() => navigate("/filter")}><FilterAltIcon /></IconButton>
+            </Stack>
 
 
-          {/* 公有标签 */}
-          <CaptionEditor captions={commonLabels} onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }} />
-          {/* 所有标签 */}
+            {/* 公有标签 */}
+            <Paper sx={{ margin: 1, padding: 1, }} elevation={8}>
+              <CaptionEditor image={undefined}
+                imageCnt={images.length} captions={commonLabels} onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
+                addable={true} />
+            </Paper>
+
+            {/* 所有标签 或 图片标签 */}
+            <Paper sx={{ margin: 1, padding: 1, }} elevation={8}>
+              {
+                <CaptionEditor image={undefined}
+                  imageCnt={undefined} captions={totalLabels} onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
+                  addable={false} />
+              }</Paper>
+
+          </div>
         </Grid>
       </Grid>
     </div>

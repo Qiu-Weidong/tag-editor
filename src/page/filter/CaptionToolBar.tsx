@@ -20,9 +20,11 @@ import { selectAllFilteredImages, unselectAllFilteredImages, openAllSelectedImag
 export default function CaptionToolBar(props: {
   onChangeCols: (cols: number) => void,
 }) {
-  // 过滤的时候要用
+  // 过滤的时候要用(所有图片)
   const images = useSelector((state: RootState) => state.images.images);
+  // 所有标签
   const labels = useSelector((state: RootState) => state.images.labels);
+  const defaultImageColumns = useSelector((state: RootState) => state.setting.defaultImageGalleryColumns);
 
   const dispatch = useDispatch();
 
@@ -49,7 +51,7 @@ export default function CaptionToolBar(props: {
         {/* 每行个数调节 */}
         <Slider
           size="small"
-          defaultValue={6}
+          defaultValue={defaultImageColumns}
           min={4}
           max={12}
           aria-label="Small"
@@ -166,12 +168,12 @@ export default function CaptionToolBar(props: {
       }
     }
 
-    setSelectableLabels(_selectableLabels);
+    setSelectableLabels(_selectableLabels.slice().sort(sortMethodList[sortMethod]));
   }
 
   function onLabelSelected(label: LabelState) {
     // 不要等state更新,先保存一份预先更新的 selectedLabels
-    const _selectedLabels = [...selectedLabels, label];
+    const _selectedLabels = [...selectedLabels, label].sort(sortMethodList[sortMethod]);
     // 将该标签标记为选中
     setSelectedLabels(_selectedLabels);
 

@@ -26,8 +26,8 @@ export default function ImageGallery() {
     openImages: state.images.images.filter(image => image.isOpen), 
     currentOpenImageIndex: state.images.currentOpenImageIndex}));
   
-  
-  const [cols, setCols] = useState(8);
+  const defaultImageColumns = useSelector((state: RootState) => state.setting.defaultImageGalleryColumns);
+  const [cols, setCols] = useState(defaultImageColumns);
   
 
   return (<div style={{ marginLeft: 0, marginTop: 60, marginRight: 0, marginBottom: 0, border: 0 }}>

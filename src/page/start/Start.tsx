@@ -1,9 +1,9 @@
 import { Button, InputAdornment, TextField } from "@mui/material";
 import { invoke } from "@tauri-apps/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { push } from "../../app/imageDirSlice";
+import { push, setImageLoaded } from "../../app/imageDirSlice";
 
 function Start() {
   const dispatch = useDispatch();
@@ -12,6 +12,10 @@ function Start() {
   const [errinfo, setErrInfo] = useState({ error: false, helperText: "" });
 
   const navigate = useNavigate();
+
+  // 进到首页就重新加载
+  useEffect(() => { dispatch(setImageLoaded(false)) }, []);
+
 
   async function check_path_and_jump() {
     invoke("check_path", { path }).then(() => {
@@ -23,10 +27,8 @@ function Start() {
       // 将路径保存在 redux 中
       dispatch(push(path));
 
-      // 在这里手动加载一次
-
       // 跳转, 直接从这里跳转到 gallery
-      navigate("/app/gallery");
+      navigate("/filter");
     }).catch((err: string) => {
       setErrInfo({
         error: true,
