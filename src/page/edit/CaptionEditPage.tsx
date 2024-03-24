@@ -116,36 +116,40 @@ export default function CaptionEditPage() {
           </div>
 
         </Grid>
-        <Grid item xs={5} md={4} style={{ maxHeight: '100%' }}>
-          <div style={{ maxHeight: '100%', height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
-            <Stack
-              direction="row" justifyContent="center" spacing={2}
-              divider={<Divider orientation="vertical" flexItem />}
-            >
-              <IconButton onClick={() => navigate("/filter")}><ArrowBackIcon /></IconButton>
-              <IconButton onClick={() => navigate("/")}><HomeIcon /></IconButton>
-              <IconButton onClick={() => navigate("/settings")}><SettingsIcon /></IconButton>
-              <IconButton onClick={() => navigate("/help")}><HelpIcon /></IconButton>
-              <IconButton onClick={() => navigate("/filter")}><FilterAltIcon /></IconButton>
-            </Stack>
 
 
-            {/* 公有标签 */}
-            <Paper sx={{ margin: 1, padding: 1, }} elevation={8}>
+        <Grid item xs={5} md={4} style={{ maxHeight: '100%', overflowY: 'auto', overflowX: 'hidden', }}>
+          {/* <div style={{ maxHeight: '100%', height: '100%', overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}> */}
+          <Stack
+            direction="row" justifyContent="center" spacing={2}
+            divider={<Divider orientation="vertical" flexItem />}
+          >
+            <IconButton onClick={() => navigate("/filter")}><ArrowBackIcon /></IconButton>
+            <IconButton onClick={() => navigate("/")}><HomeIcon /></IconButton>
+            <IconButton onClick={() => navigate("/settings")}><SettingsIcon /></IconButton>
+            <IconButton onClick={() => navigate("/help")}><HelpIcon /></IconButton>
+            <IconButton onClick={() => navigate("/filter")}><FilterAltIcon /></IconButton>
+          </Stack>
+
+          {/* <div style={{ flexGrow: 1, maxHeight: '90%' }}> */}
+          {/* 公有标签 */}
+          <Paper sx={{ margin: 1, padding: 1, }} elevation={8}>
+            common captions
+            <CaptionEditor image={undefined}
+              imageCnt={images.length} captions={commonLabels} onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
+              addable={true} />
+          </Paper>
+
+          {/* 所有标签 或 图片标签 */}
+          <Paper sx={{ margin: 1, padding: 1, }} elevation={8}>
+            total captions
+            {
               <CaptionEditor image={undefined}
-                imageCnt={images.length} captions={commonLabels} onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
-                addable={true} />
-            </Paper>
-
-            {/* 所有标签 或 图片标签 */}
-            <Paper sx={{ margin: 1, padding: 1, }} elevation={8}>
-              {
-                <CaptionEditor image={undefined}
-                  imageCnt={undefined} captions={totalLabels} onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
-                  addable={false} />
-              }</Paper>
-
-          </div>
+                imageCnt={undefined} captions={totalLabels} onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
+                addable={false} />
+            }</Paper>
+          {/* </div> */}
+          {/* </div> */}
         </Grid>
       </Grid>
     </div>

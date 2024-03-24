@@ -85,7 +85,7 @@ export default function CaptionEditor(props: {
     />));
 
 
-  return (<>
+  return (<div style={{ height: '100%', maxHeight: '100%', overflow: 'hidden' }}>
     {/* 过滤器  */}
     <div>
       <TextField fullWidth size="small" variant="standard" label="filter" value={filterText} onChange={(e) => {
@@ -112,7 +112,7 @@ export default function CaptionEditor(props: {
       </FormControl>
     </div>
 
-    {/* <div style={{ overflowY: 'auto', height: '100%' }}> */}
+    {/* <div style={{ overflowY: 'auto', }}> */}
     {
       captionList
     }
@@ -125,7 +125,7 @@ export default function CaptionEditor(props: {
     {/* </div> */}
 
 
-  </>);
+  </div>);
 }
 
 
