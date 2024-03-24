@@ -6,7 +6,7 @@ import Start from "./page/start/Start";
 import { Provider } from "react-redux";
 import { store } from "./app/store";
 import App from "./App";
-import CaptionEditor from "./page/edit/CaptionEditor";
+import CaptionEditPage from "./page/edit/CaptionEditPage";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <Routes>
           <Route path="/" element={<Start />}></Route>
           <Route path="/app/*" element={<App />}></Route>
-          <Route path="/edit" element={<CaptionEditor />}></Route>
+          <Route path="/edit" element={<CaptionEditPage />}></Route>
           <Route path="/settings" element={"settings page is coming soon."}></Route>
           <Route path="/help" element={"help page is coming soon."}></Route>
           <Route path="*" element={"404"}></Route>

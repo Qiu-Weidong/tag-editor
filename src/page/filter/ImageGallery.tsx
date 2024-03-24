@@ -69,7 +69,20 @@ export default function ImageGallery() {
 
     {/* LightBox 放这里 */}
     {
-      openImages.length > 0 ? <LightBox images={openImages} defaultShowIndex={currentOpenImageIndex} onClose={() =>  dispatch(closeAllImages())  } /> : ''
+      openImages.length > 0 ? 
+      <div style={{ 
+      position: 'fixed',
+      left: 0,
+      top: 0,
+      width: '100vw',
+      height: '100vh',
+      zIndex: 9999, }}>
+        <LightBox images={openImages} defaultShowIndex={currentOpenImageIndex} onClose={() =>  dispatch(closeAllImages())  } 
+          onNext={(_before, _after) => {}} onPrev={(_before, _after) => {}}
+        /> 
+      </div>
+      
+      : ''
     }
   </div>);
 

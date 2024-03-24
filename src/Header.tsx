@@ -7,7 +7,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpIcon from '@mui/icons-material/Help';
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "./app/store";
 import { invoke } from "@tauri-apps/api";
@@ -38,14 +38,6 @@ export default function Header() {
 
 
   const imageWidth = 90;
-
-
-  useEffect(() => {
-    refresh(imagedir);
-  }, []);
-
-
-
   function checkStem(image_path_list: { extension: string, filename: string, filepath: string, stem: string }[]) {
     const counter = new Map<string, number>([]);
     for (const imagePath of image_path_list) {

@@ -23,6 +23,8 @@ function Start() {
       // 将路径保存在 redux 中
       dispatch(push(path));
 
+      // 在这里手动加载一次
+
       // 跳转, 直接从这里跳转到 gallery
       navigate("/app/gallery");
     }).catch((err: string) => {

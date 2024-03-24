@@ -8,28 +8,34 @@ import { ImageState } from "../../app/imageListSlice";
 
 
 
-export default function LightBox(props: {
+
+export default function LightBox({
+  images, 
+  defaultShowIndex, 
+  onClose, 
+  onNext ,
+  onPrev ,
+}: {
   images: ImageState[],
   defaultShowIndex: number,
   onClose: () => void,
-}) {
-  const [currentImage, setCurrentImage] = useState<{ index: number, src: string | undefined }>({ index: props.defaultShowIndex, src: undefined });
-  useEffect(() => { loadImageByIndex(props.defaultShowIndex) }, [props.defaultShowIndex]);
+  onNext: (before: ImageState, after: ImageState) => void,
+  onPrev: (before: ImageState, after: ImageState) => void,
+} ) {
+  const [currentImage, setCurrentImage] = useState<{ index: number, src: string | undefined }>({ index: defaultShowIndex, src: undefined });
+  useEffect(() => { loadImageByIndex(defaultShowIndex) }, [defaultShowIndex]);
 
 
 
   return (<div style={{
     backgroundColor: 'rgba(0,0,0,0.8)',
-    position: 'fixed',
-    left: 0,
-    top: 0,
-    width: '100vw',
-    height: '100vh',
-    zIndex: 9999,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
+    height: '100%',
   }} 
+  
   autoFocus
   onKeyDown={(event) => {
     if (event.key === 'ArrowLeft') {
@@ -54,7 +60,7 @@ export default function LightBox(props: {
     <Fab style={{ position: 'absolute', right: 20, }} onClick={nextImage} color="warning" size="small" ><ChevronRightIcon /></Fab>
 
 
-    <IconButton style={{ position: 'absolute', right: 20, top: 5, }} onClick={props.onClose} color="info"> <CloseIcon /> </IconButton>
+    <IconButton style={{ position: 'absolute', right: 20, top: 5, }} onClick={onClose} color="info"> <CloseIcon /> </IconButton>
   </div>
   );
 
@@ -63,7 +69,7 @@ export default function LightBox(props: {
   async function loadImageByIndex(index: number) {
     setCurrentImage((current) => ({ ...current, src: undefined }));
 
-    const image = props.images[index];
+    const image = images[index];
 
     if (!image) return;
 
@@ -75,16 +81,24 @@ export default function LightBox(props: {
   }
 
   async function nextImage() {
-
-    const index = ((currentImage?.index ?? -1) + 1) % props.images.length;
+    const currentIndex = currentImage.index;
+    const index = (currentImage.index + 1) % images.length;
     loadImageByIndex(index);
+    const before = images[currentIndex];
+    const after = images[index];
+
+    onNext(before, after);
   }
 
   async function prevImage() {
-    const index = ((currentImage?.index ?? 1) + props.images.length - 1) % props.images.length;
+    const currentIndex = currentImage.index;
+    const index = (currentImage?.index + images.length - 1) % images.length;
     loadImageByIndex(index);
+    
+    const before = images[currentIndex];
+    const after = images[index];
+
+    onPrev(before, after);
   }
 }
-
-
 
