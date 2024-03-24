@@ -43,14 +43,14 @@ export interface LabelState {
 interface ImageListState {
   images: ImageState[],
   labels: LabelState[],
-  // currentOpenImage: string | undefined;
+  currentOpenImageIndex: number,
 };
 
 
 const initialState : ImageListState = {
   images: [],
   labels: [],
-  // currentOpenImage: undefined,
+  currentOpenImageIndex: 0,
 };
 
 
@@ -98,12 +98,14 @@ export const imageListSlice = createSlice({
       });
     },
 
-    openAllFilterImages: (state) => {
+    openAllFilterImages: (state, action: PayloadAction<string | undefined>) => {
+      const index = state.images.filter(image => image.isFiltered).findIndex(image => image.id === action.payload);
       state.images = state.images.map(image => {
         if(image.isFiltered) {
           return { ...image, isOpen: true };
         } else { return image; }
       });
+      state.currentOpenImageIndex = index >= 0 ? index : 0;
     },
 
     openAllSelectedImages: (state) => {
@@ -112,6 +114,7 @@ export const imageListSlice = createSlice({
           return { ...image, isOpen: true };
         } else { return image; }
       });
+      state.currentOpenImageIndex = 0;
     },
 
     closeAllImages: (state) => {

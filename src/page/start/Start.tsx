@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { push } from "./app/imageDirSlice";
+import { push } from "../../app/imageDirSlice";
 
 function Start() {
   const dispatch = useDispatch();

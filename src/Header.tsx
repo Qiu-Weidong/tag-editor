@@ -107,7 +107,7 @@ export default function Header() {
       // 增加一个检查是否中止的逻辑.
       if (ctl.current.stop) {
         ctl.current.stop = false;
-        dispatch(setProcessState(current / total * 100))
+        dispatch(setProcessState(100))
         break;
       }
 
@@ -190,8 +190,8 @@ export default function Header() {
         <ChevronRightIcon />
       </IconButton>
 
-      <IconButton ><SettingsIcon /></IconButton>
-      <IconButton> <HelpIcon /> </IconButton>
+      <IconButton onClick={() => {stoploading(); navigate("/settings");}}><SettingsIcon /></IconButton>
+      <IconButton onClick={() => {stoploading(); navigate("/help");}}> <HelpIcon /> </IconButton>
       <IconButton onClick={() => {
         // 会主页之间要先将没有加载完成的stop了
         stoploading();

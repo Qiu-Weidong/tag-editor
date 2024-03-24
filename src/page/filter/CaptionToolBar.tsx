@@ -6,13 +6,13 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import DoDisturbIcon from '@mui/icons-material/DoDisturb';
 import { useSelector } from "react-redux";
-import { RootState } from "./app/store";
-import { LabelState } from "./app/imageListSlice";
+import { RootState } from "../../app/store";
+import { LabelState } from "../../app/imageListSlice";
 import { useDispatch } from "react-redux";
-import { setImageList } from "./app/imageListSlice";
+import { setImageList } from "../../app/imageListSlice";
 import Divider from '@mui/material/Divider';
 import { SelectAllOutlined } from "@mui/icons-material";
-import { selectAllFilteredImages, unselectAllFilteredImages, openAllSelectedImages } from "./app/imageListSlice";
+import { selectAllFilteredImages, unselectAllFilteredImages, openAllSelectedImages } from "../../app/imageListSlice";
 
 
 

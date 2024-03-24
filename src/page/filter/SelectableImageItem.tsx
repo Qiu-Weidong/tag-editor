@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { IconButton, ImageListItem } from "@mui/material";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { ImageState } from "./app/imageListSlice";
+import { ImageState } from "../../app/imageListSlice";
 
 
 // 我需要一个 onOpen 事件以便打开图片
