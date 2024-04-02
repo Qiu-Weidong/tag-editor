@@ -19,8 +19,8 @@ export default function LightBox({
   images: ImageState[],
   defaultShowIndex: number,
   onClose: () => void,
-  onNext: (before: ImageState, after: ImageState) => void,
-  onPrev: (before: ImageState, after: ImageState) => void,
+  onNext: (before: ImageState, after: ImageState, beforeIndex: number, afterIndex: number) => void,
+  onPrev: (before: ImageState, after: ImageState, beforeIndex: number, afterIndex: number) => void,
 } ) {
   const [currentImage, setCurrentImage] = useState<{ index: number, src: string | undefined }>({ index: defaultShowIndex, src: undefined });
   useEffect(() => { loadImageByIndex(defaultShowIndex) }, [defaultShowIndex]);
@@ -87,7 +87,7 @@ export default function LightBox({
     const before = images[currentIndex];
     const after = images[index];
 
-    onNext(before, after);
+    onNext(before, after, currentIndex, index);
   }
 
   async function prevImage() {
@@ -98,7 +98,7 @@ export default function LightBox({
     const before = images[currentIndex];
     const after = images[index];
 
-    onPrev(before, after);
+    onPrev(before, after, currentIndex, index);
   }
 }
 

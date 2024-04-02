@@ -1,3 +1,7 @@
+/* body {
+  min-height: 97vh;
+} */
+
 :root {
   font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
   font-size: 16px;
@@ -13,7 +17,7 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
   scrollbar-width: thin;
-  /* scrollbar-color: #49b1f5 transparent; */
+  /* min-height: 100%; */
 
   ::-webkit-scrollbar {
     width: 3px; /* 设置滚动条的宽度 */
@@ -34,7 +38,7 @@
 .container {
   margin-left: 10%;
   margin-right: 10%;
-  min-height: 96vh;
+  min-height: 97vh;
   
 
   display: flex;
