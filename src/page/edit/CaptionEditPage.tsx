@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom";
 import CaptionEditor from "./CaptionEditor";
 import SaveIcon from '@mui/icons-material/Save';
 import { ImageCaptionEditor } from "./CaptionEditor";
+import { changeCaptionsForImage } from "../../app/imageListSlice";
+import { useDispatch } from "react-redux";
 
 
 function ImageItem(props: {
@@ -74,6 +76,7 @@ function getTotalCaptionsForSelectedImages(selectedImages: ImageState[]): string
 
 export default function CaptionEditPage() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
 
   const images = useSelector((state: RootState) => state.images.images.filter(image => image.isSelected));
@@ -141,35 +144,37 @@ export default function CaptionEditPage() {
 
 
       <Grid item xs={5} md={4} style={{ overflowY: 'auto', overflowX: 'hidden', }}>
+        <div style={{ maxHeight: '100%', position: 'relative' }}>
+          {
+            openImage === undefined || openImageIndex === undefined ? <>
+              {/* 公有标签 */}
+              <CaptionEditor captions={commonLabels} title="common captions" helpInfo=""
+                onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
+                addable={true} />
+              <Divider variant="middle" />
+              {/* 所有标签 */}
+              <CaptionEditor captions={totalLabels} title="total captions" helpInfo=""
+                onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
+                addable={false} />
+            </> : <ImageCaptionEditor captions={openImage.captions} imageid={openImage.id}
+              onChangeCaption={(imageid, captions) => { 
+                console.log(captions);
+                dispatch(changeCaptionsForImage({ imageid, captions }));
+              }}
+              title={"image captions"} helpInfo={""} />
+          }
 
-        {
-          openImage === undefined || openImageIndex === undefined ? <>
-            {/* 公有标签 */}
-            <CaptionEditor captions={commonLabels} title="common captions" helpInfo=""
-              onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
-              addable={true} />
-            <Divider variant="middle" />
-            {/* 所有标签 */}
-            <CaptionEditor captions={totalLabels} title="total captions" helpInfo=""
-              onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
-              addable={false} />
-          </> : <ImageCaptionEditor image={openImage}
-            onAddCaption={() => {}}
-            onRemoveCaption={() => {}}
-            onChangeCaption={() => {}} 
-            title={"image captions"} helpInfo={""} />
-        }
 
 
 
+          <div style={{ position: 'absolute', right: 0 }}>
+            <IconButton onClick={() => navigate("/filter")}><ArrowBackIcon /></IconButton>
+            <IconButton onClick={() => navigate("/")} ><HomeIcon /></IconButton>
+            <IconButton onClick={() => navigate("/settings")}><SettingsIcon /></IconButton>
+            <IconButton onClick={() => navigate("/help")} ><HelpIcon /></IconButton>
 
-        <div style={{ position: 'absolute', right: 0 }}>
-          <IconButton onClick={() => navigate("/filter")}><ArrowBackIcon /></IconButton>
-          <IconButton onClick={() => navigate("/")} ><HomeIcon /></IconButton>
-          <IconButton onClick={() => navigate("/settings")}><SettingsIcon /></IconButton>
-          <IconButton onClick={() => navigate("/help")} ><HelpIcon /></IconButton>
-
-          <IconButton size="small"><SaveIcon /></IconButton>
+            <IconButton size="small"><SaveIcon /></IconButton>
+          </div>
         </div>
       </Grid>
     </Grid>

@@ -1,9 +1,9 @@
 import { Chip, FormControl, FormControlLabel, IconButton, InputAdornment, Radio, RadioGroup, TextField, Typography } from "@mui/material";
-import { ImageState } from "../../app/imageListSlice";
 import { useEffect, useState } from "react";
 import AddIcon from '@mui/icons-material/Add';
 import EditNoteIcon from '@mui/icons-material/EditNote';
 import DoneIcon from '@mui/icons-material/Done';
+import PublishIcon from '@mui/icons-material/Publish';
 
 
 // 删除和编辑分开
@@ -134,24 +134,31 @@ export default function CaptionEditor(props: {
 
 
 export function ImageCaptionEditor(props: {
-  image: ImageState, // 要编辑的所有标签
-
-  onAddCaption: (caption: string) => void | undefined,
-  onRemoveCaption: (caption: string) => void | undefined,
-  onChangeCaption: (before: string, after: string) => void | undefined,
+  imageid: string,
+  captions: string[],
+  onChangeCaption: (imageid: string, captions: string[]) => void | undefined,
   title: string,
   helpInfo: string,
 }) {
   const [filterText, setFilterText] = useState('');
-  const [filteredCaptions, setFilteredCaptions] = useState(props.image.captions);
+  const [allCaptions, setAllCaptions] = useState(props.captions);
+  const [filteredCaptions, setFilteredCaptions] = useState(props.captions);
   const [rawText, setRawText] = useState('');
 
   useEffect(() => {
-    setFilteredCaptions(props.image.captions);
+    // 执行一些初始化操作
+    updateCaptions(props.captions);
+  }, [props.captions]);
+
+  function updateCaptions(captions: string[]) {
+    setAllCaptions(captions);
+    const filtered = captions.filter(caption => caption.includes(filterText));
+    setFilteredCaptions(filtered);
+
     let s = '';
-    props.image.captions.forEach(caption => s += caption + ', ');
+    captions.forEach(caption => s += caption + ', ');
     setRawText(s);
-  }, [props.image.captions]);
+  }
 
 
   const [editOrDelete, setEditOrDelete] = useState(0);
@@ -160,8 +167,23 @@ export function ImageCaptionEditor(props: {
   const [adding, setAdding] = useState(false);
 
   const captionList = editOrDelete == 0 ? (filteredCaptions.map(caption => <EditableChip editable={false} color="info" caption={caption}
-    onChange={(before, after) => props.onChangeCaption(before, after)} />))
-    : (filteredCaptions.map(caption => <Chip color="info" size="small" label={caption} onDelete={() => { }}
+    onChange={(before, after) => {
+      // 将 before 修改为了 after
+      const captions = allCaptions.map(caption => {
+        if(caption === before) return after.trim();
+        else return caption;
+      });
+
+      updateCaptions(captions);
+      props.onChangeCaption(props.imageid, captions);
+    }} />))
+    : (filteredCaptions.map(caption => <Chip color="info" size="small" label={caption} onDelete={() => {
+      // 将 caption 删除
+      const captions = allCaptions.filter(_caption => _caption !== caption);
+      // 本地更新
+      updateCaptions(captions);
+      props.onChangeCaption(props.imageid, captions);
+    }}
       style={{ marginRight: 2 }}
       clickable
     />));
@@ -192,7 +214,7 @@ export function ImageCaptionEditor(props: {
         {/* 过滤器  */}
         <TextField fullWidth size="small" variant="standard" label="filter" value={filterText} onChange={(e) => {
           setFilterText(e.target.value);
-          const filtered = props.image.captions.filter(caption => caption.includes(e.target.value));
+          const filtered = allCaptions.filter(caption => caption.includes(e.target.value));
           setFilteredCaptions(filtered);
         }} />
 
@@ -201,7 +223,14 @@ export function ImageCaptionEditor(props: {
             captionList
           }
           {
-            adding ? <EditableChip editable={true} color="info" caption="add new label" onChange={() => {/**新建标签 */ setAdding(false) }} />
+            adding ? <EditableChip editable={true} color="info" caption="add new label" onChange={(_, after) => {
+              /**新建标签 */
+              setAdding(false);
+              // 添加标签 after
+              const captions = [...allCaptions, after.trim()];
+              updateCaptions(captions);
+              props.onChangeCaption(props.imageid, captions);
+            }} />
               : <IconButton color="primary" size="small" onClick={() => setAdding(true)}><AddIcon /></IconButton>
           }
 
@@ -214,11 +243,22 @@ export function ImageCaptionEditor(props: {
         maxRows={16}
         value={rawText}
         onChange={(e) => setRawText(e.target.value)}
-
+        InputProps={{
+          endAdornment: <InputAdornment position="start">
+            <IconButton onClick={submit}><PublishIcon /></IconButton>
+          </InputAdornment>,
+        }}
       />
     }
 
   </div>);
+
+  function submit() {
+    // 将 rawText 解析回 captions, 并发送
+    const captions = rawText.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    updateCaptions(captions);
+    props.onChangeCaption(props.imageid, captions);
+  }
 }
 
 

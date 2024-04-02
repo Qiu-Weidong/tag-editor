@@ -7,7 +7,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpIcon from '@mui/icons-material/Help';
 import { useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 import { invoke } from "@tauri-apps/api";
@@ -27,18 +27,29 @@ export default function Header() {
   const lastdir = useSelector((state: RootState) => state.imagedir.historyDir[state.imagedir.historyDir.length - 1] || null);
   const forwarddir = useSelector((state: RootState) => state.imagedir.cachedReturnDir[state.imagedir.cachedReturnDir.length - 1] || null);
 
-
   const ctl = useRef<{ loading: boolean, stop: boolean, init: boolean }>({ loading: false, stop: false, init: true });
   const [loading, setLoading] = useState(ctl.current.loading);
   const [disableTextField, setDisableTextField] = useState(true);
   const [errinfo, setErrInfo] = useState({ error: false, helperText: "" });
   const [inputValue, setInputValue] = useState(imagedir);
 
+
   const imageLoaded = useSelector((state: RootState) => state.imagedir.imageLoaded);
-  if(! imageLoaded) {
-    refresh(imagedir);
-    dispatch(setImageLoaded(true));
-  }
+
+
+  // 不要在这里执行
+  useEffect(() => {
+    if (!imageLoaded) {
+      refresh(imagedir);
+      dispatch(setImageLoaded(true));
+    }
+  }, []);
+
+
+
+
+
+
 
 
 
@@ -81,12 +92,12 @@ export default function Header() {
       // 给图片分配一个 id
       const image_id = shortid.generate();
 
-      const _image: ImageState = { 
-        src: image.src, 
-        captions:image.captions, 
-        id: image_id, 
-        isSelected: false, 
-        isFiltered: true, 
+      const _image: ImageState = {
+        src: image.src,
+        captions: image.captions,
+        id: image_id,
+        isSelected: false,
+        isFiltered: true,
         isOpen: false,
         path: imagePath.filepath,
         filename: imagePath.stem,
@@ -188,8 +199,8 @@ export default function Header() {
         <ChevronRightIcon />
       </IconButton>
 
-      <IconButton onClick={() => {stoploading(); navigate("/settings");}}><SettingsIcon /></IconButton>
-      <IconButton onClick={() => {stoploading(); navigate("/help");}}> <HelpIcon /> </IconButton>
+      <IconButton onClick={() => { stoploading(); navigate("/settings"); }}><SettingsIcon /></IconButton>
+      <IconButton onClick={() => { stoploading(); navigate("/help"); }}> <HelpIcon /> </IconButton>
       <IconButton onClick={() => {
         // 会主页之间要先将没有加载完成的stop了
         stoploading();

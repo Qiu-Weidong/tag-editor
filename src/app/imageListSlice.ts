@@ -35,7 +35,7 @@ export interface ImageState {
 };
 
 export interface LabelState {
-  content: string, 
+  content: string,
   frequency: number,
 };
 
@@ -47,17 +47,37 @@ interface ImageListState {
 };
 
 
-const initialState : ImageListState = {
+const initialState: ImageListState = {
   images: [],
   labels: [],
   currentOpenImageIndex: 0,
 };
 
 
+function labelCnt(images: ImageState[]): LabelState[] {
+  const _labels = new Map<string, number>();
+  for (const image of images) {
+    for (const caption of image.captions) {
+      const cnt = (_labels.get(caption) || 0) + 1;
+      _labels.set(caption, cnt);
+    }
+  }
+
+  const labels: LabelState[] = []
+  for (const [label, frequency] of _labels.entries()) {
+    labels.push({
+      content: label,
+      frequency,
+    });
+  }
+  return labels;
+}
+
+
 
 export const imageListSlice = createSlice({
   name: "images",
-  initialState, 
+  initialState,
   reducers: {
     pushImage: (state, action: PayloadAction<ImageState>) => {
       state.images = [...state.images, action.payload];
@@ -71,7 +91,7 @@ export const imageListSlice = createSlice({
 
     selectImage: (state, action: PayloadAction<string>) => {
       state.images = state.images.map((image) => {
-        if(image.id == action.payload) {
+        if (image.id == action.payload) {
           return { ...image, isSelected: true };
         }
         else { return image; }
@@ -80,7 +100,7 @@ export const imageListSlice = createSlice({
 
     unselectImage: (state, action: PayloadAction<string>) => {
       state.images = state.images.map((image) => {
-        if(image.id == action.payload) {
+        if (image.id == action.payload) {
           return { ...image, isSelected: false };
         }
         else { return image; }
@@ -89,7 +109,7 @@ export const imageListSlice = createSlice({
 
     openImage: (state, action: PayloadAction<string>) => {
       state.images = state.images.map(image => {
-        if(image.id === action.payload) {
+        if (image.id === action.payload) {
           return { ...image, isOpen: true };
         }
         else {
@@ -101,7 +121,7 @@ export const imageListSlice = createSlice({
     openAllFilterImages: (state, action: PayloadAction<string | undefined>) => {
       const index = state.images.filter(image => image.isFiltered).findIndex(image => image.id === action.payload);
       state.images = state.images.map(image => {
-        if(image.isFiltered) {
+        if (image.isFiltered) {
           return { ...image, isOpen: true };
         } else { return image; }
       });
@@ -110,7 +130,7 @@ export const imageListSlice = createSlice({
 
     openAllSelectedImages: (state) => {
       state.images = state.images.map(image => {
-        if(image.isSelected) {
+        if (image.isSelected) {
           return { ...image, isOpen: true };
         } else { return image; }
       });
@@ -128,18 +148,18 @@ export const imageListSlice = createSlice({
     setImageList: (state, action: PayloadAction<ImageState[]>) => { state.images = action.payload; },
 
     selectAllImages: (state) => {
-      state.images = state.images.map((image) => ({ ...image, isSelected: true}));
+      state.images = state.images.map((image) => ({ ...image, isSelected: true }));
     },
 
     unselectAllImages: (state) => {
-      state.images = state.images.map((image) => ({ ...image, isSelected: true}));
+      state.images = state.images.map((image) => ({ ...image, isSelected: true }));
     },
 
 
     selectAllFilteredImages: (state) => {
       // 将 isFiltered 的图片全部设为 selected
       state.images = state.images.map(image => {
-        if(image.isFiltered) {
+        if (image.isFiltered) {
           return { ...image, isSelected: true };
         } else { return image; }
       });
@@ -148,7 +168,7 @@ export const imageListSlice = createSlice({
     unselectAllFilteredImages: (state) => {
       // 将 isFiltered 的图片全部设置为 false
       state.images = state.images.map(image => {
-        if(image.isFiltered) {
+        if (image.isFiltered) {
           return { ...image, isSelected: false };
         }
         else {
@@ -156,6 +176,22 @@ export const imageListSlice = createSlice({
         }
       });
     },
+
+    changeCaptionsForImage: (state, action: PayloadAction<{ imageid: string, captions: string[] }>) => {
+      const images = state.images.map(img => {
+        if (img.id !== action.payload.imageid) { return img }
+        else {
+          console.log('找到了,', img.id);
+          return { ...img, captions: action.payload.captions }
+        }
+      });
+
+      // 记得更新 labels
+      state.labels = labelCnt(images);
+      state.images = images;
+    },
+
+
   }
 });
 
@@ -163,6 +199,6 @@ export const imageListSlice = createSlice({
 export default imageListSlice.reducer;
 
 // 导出 actions
-export const { openImage, closeAllImages, openAllFilterImages, openAllSelectedImages, pushImage, selectImage, unselectImage, removeImage, clearImageList, setLabels, selectAllFilteredImages, unselectAllFilteredImages, setImageList } = imageListSlice.actions;
+export const { changeCaptionsForImage, openImage, closeAllImages, openAllFilterImages, openAllSelectedImages, pushImage, selectImage, unselectImage, removeImage, clearImageList, setLabels, selectAllFilteredImages, unselectAllFilteredImages, setImageList } = imageListSlice.actions;
 
 
