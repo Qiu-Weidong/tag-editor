@@ -1,4 +1,4 @@
-import { Divider, Grid, IconButton, ImageList, ImageListItem, Paper, Slider } from "@mui/material";
+import { Grid, IconButton, ImageList, ImageListItem, Paper, Slider } from "@mui/material";
 import { useSelector } from "react-redux";
 import { RootState } from "../../app/store";
 import { ImageState, LabelState } from "../../app/imageListSlice";
@@ -12,8 +12,10 @@ import { useNavigate } from "react-router-dom";
 import CaptionEditor from "./CaptionEditor";
 import SaveIcon from '@mui/icons-material/Save';
 import { ImageCaptionEditor } from "./CaptionEditor";
-import { changeCaptionsForImage } from "../../app/imageListSlice";
+import { changeCaptionsForImage, addCaptionForSelectedImages, changeCaptionForSelectedImages, removeCaptionForSelectedImages } from "../../app/imageListSlice";
 import { useDispatch } from "react-redux";
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
 
 function ImageItem(props: {
@@ -68,9 +70,37 @@ function getCommonCaptionsForSelectedImages(selectedImages: ImageState[], labels
 function getTotalCaptionsForSelectedImages(selectedImages: ImageState[]): string[] {
   let totalLabels = new Set<string>([]);
   selectedImages.forEach(image => totalLabels = new Set([...totalLabels, ...image.captions]));
-  // const _totalLabels = labels.filter(label => totalLabels.has(label.content));
   return Array.from(totalLabels).sort();
 }
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && children}
+    </div>
+  );
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -86,8 +116,8 @@ export default function CaptionEditPage() {
   // openImageCaptions 和 openImageIndex 必须分为两个 state
   const [openImageIndex, setOpenImageIndex] = useState<number | undefined>(undefined);
   const [openImage, setOpenImage] = useState<ImageState | undefined>(undefined);
-
-
+  
+  const [tabid, setTabid] = useState(0);
   const [cols, setCols] = useState(defaultImageColumns);
 
 
@@ -121,7 +151,7 @@ export default function CaptionEditPage() {
               {
                 images.map(image => <ImageItem image={image} onImageClick={(image) => {
                   const index = images.findIndex(img => image.id === img.id);
-                  if (index >= 0) { setOpenImageIndex(index); setOpenImage(images[index]); }
+                  if (index >= 0) { setOpenImageIndex(index); setOpenImage(image); setTabid(2); }
                 }} />)
               }
             </ImageList>
@@ -129,7 +159,9 @@ export default function CaptionEditPage() {
           {/* 盖在上面 */}
           {
             openImageIndex !== undefined ? <div style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', }}>
-              <LightBox images={images} defaultShowIndex={(openImageIndex ?? 0)} onClose={() => setOpenImageIndex(undefined)}
+              <LightBox images={images} defaultShowIndex={(openImageIndex ?? 0)} onClose={() => {
+                setOpenImageIndex(undefined); setOpenImage(undefined); setTabid(0);
+              }}
                 onNext={(_before, after) => {
                   setOpenImage(after);
                 }} onPrev={(_before, after) => {
@@ -145,24 +177,38 @@ export default function CaptionEditPage() {
 
       <Grid item xs={5} md={4} style={{ overflowY: 'auto', overflowX: 'hidden', }}>
         <div style={{ maxHeight: '100%', position: 'relative' }}>
-          {
-            openImage === undefined || openImageIndex === undefined ? <>
-              {/* 公有标签 */}
-              <CaptionEditor captions={commonLabels} title="common captions" helpInfo=""
-                onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
-                addable={true} />
-              <Divider variant="middle" />
-              {/* 所有标签 */}
-              <CaptionEditor captions={totalLabels} title="total captions" helpInfo=""
-                onAddCaption={(caption: string) => { }} onRemoveCaption={(caption: string) => { }} onChangeCaption={(before: string, after: string) => { }}
-                addable={false} />
-            </> : <ImageCaptionEditor captions={openImage.captions} imageid={openImage.id}
-              onChangeCaption={(imageid, captions) => { 
-                console.log(captions);
+          <Tabs value={tabid} onChange={(_, id) => setTabid(id)} variant="fullWidth" centered>
+            <Tab label="Common"></Tab>
+            <Tab label="Total" />
+            <Tab label="Image" disabled={openImage == undefined || openImageIndex == undefined} />
+          </Tabs>
+
+          {/* 公有标签 */}
+          <TabPanel value={tabid} index={0}>
+            <CaptionEditor captions={commonLabels} helpInfo=""
+              onAddCaption={(caption: string) => { dispatch(addCaptionForSelectedImages(caption)) }}
+              onRemoveCaption={(caption: string) => { dispatch(removeCaptionForSelectedImages(caption)) }}
+              onChangeCaption={(before: string, after: string) => { dispatch(changeCaptionForSelectedImages({ before, after })) }}
+              addable={true} />
+          </TabPanel>
+
+          {/* 所有标签 */}
+          <TabPanel value={tabid} index={1}>
+            <CaptionEditor captions={totalLabels} helpInfo=""
+              onAddCaption={(caption: string) => { dispatch(addCaptionForSelectedImages(caption)) }}
+              onRemoveCaption={(caption: string) => { dispatch(removeCaptionForSelectedImages(caption)) }}
+              onChangeCaption={(before: string, after: string) => { dispatch(changeCaptionForSelectedImages({ before, after })) }}
+              addable={false} />
+          </TabPanel>
+
+          <TabPanel value={tabid} index={2}>
+            <ImageCaptionEditor captions={openImage?.captions ?? []} imageid={openImage?.id ?? ''}
+              onChangeCaption={(imageid, captions) => {
                 dispatch(changeCaptionsForImage({ imageid, captions }));
               }}
-              title={"image captions"} helpInfo={""} />
-          }
+              helpInfo={""} />
+          </TabPanel>
+
 
 
 

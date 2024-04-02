@@ -181,7 +181,6 @@ export const imageListSlice = createSlice({
       const images = state.images.map(img => {
         if (img.id !== action.payload.imageid) { return img }
         else {
-          console.log('找到了,', img.id);
           return { ...img, captions: action.payload.captions }
         }
       });
@@ -191,6 +190,45 @@ export const imageListSlice = createSlice({
       state.images = images;
     },
 
+    addCaptionForSelectedImages: (state, action: PayloadAction<string>) => {
+      const images = state.images.map(img => {
+        if(! img.isSelected) return img;
+        else return { ...img, captions: [...img.captions, action.payload] };
+      });
+
+      // 记得更新 labels
+      state.labels = labelCnt(images);
+      state.images = images;
+    },
+
+    changeCaptionForSelectedImages: (state, action: PayloadAction<{ before: string, after: string }>) => {
+      const images = state.images.map(img => {
+        if(! img.isSelected) return img;
+        else {
+          const captions = img.captions.map(caption => {
+            if(caption === action.payload.before) { return action.payload.after.trim() }
+            else return caption;
+          });
+
+          return {...img, captions};
+        }
+      });
+
+      // 记得更新 labels
+      state.labels = labelCnt(images);
+      state.images = images;
+    },
+
+    removeCaptionForSelectedImages: (state, action: PayloadAction<string>) => {
+      const images = state.images.map(img => {
+        if(! img.isSelected) return img;
+        else return { ...img, captions: img.captions.filter(caption => caption !== action.payload) };
+      });
+
+      // 记得更新 labels
+      state.labels = labelCnt(images);
+      state.images = images;
+    },
 
   }
 });
@@ -199,6 +237,6 @@ export const imageListSlice = createSlice({
 export default imageListSlice.reducer;
 
 // 导出 actions
-export const { changeCaptionsForImage, openImage, closeAllImages, openAllFilterImages, openAllSelectedImages, pushImage, selectImage, unselectImage, removeImage, clearImageList, setLabels, selectAllFilteredImages, unselectAllFilteredImages, setImageList } = imageListSlice.actions;
+export const { addCaptionForSelectedImages, changeCaptionForSelectedImages, removeCaptionForSelectedImages, changeCaptionsForImage, openImage, closeAllImages, openAllFilterImages, openAllSelectedImages, pushImage, selectImage, unselectImage, removeImage, clearImageList, setLabels, selectAllFilteredImages, unselectAllFilteredImages, setImageList } = imageListSlice.actions;
 
 
