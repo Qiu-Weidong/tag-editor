@@ -6,10 +6,10 @@ use std::path::{Path, PathBuf};
 use std::fs::{self, metadata, File};
 use std::vec;
 use base64::{engine::general_purpose::STANDARD_NO_PAD, Engine as _};
-use std::io::{Cursor, Read};
+use std::io::{Cursor, Read, Write};
 
 use image::DynamicImage;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize)]
 struct ImageInfoWithCaptions {
@@ -55,6 +55,16 @@ struct ImagePathInfo {
 }
 
 
+#[derive(Deserialize)]
+struct ImageSaveInfo {
+  pub filename: String, // 文件名(不含后缀)
+  pub captions: Vec<String>,
+}
+
+
+
+
+
 fn image_to_base64(image: &DynamicImage, image_fmt: image::ImageFormat) -> String {
   // 首先将 image 抓换为 Vec<u8> 的数组
   let mut buffer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
@@ -63,17 +73,6 @@ fn image_to_base64(image: &DynamicImage, image_fmt: image::ImageFormat) -> Strin
   let result = STANDARD_NO_PAD.encode(buffer);
   format!("data:image/{};base64,{}", image_fmt.extensions_str()[0], result.replace("\r\n", ""))
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 #[tauri::command]
@@ -202,10 +201,25 @@ fn glob_images(imagedir: &str) -> Result<Vec<ImagePathInfo>, String> {
   Ok(result)
 }
 
+#[tauri::command]
+fn save_captions(imagedir: PathBuf, captions: Vec<ImageSaveInfo>, caption_ext: &str) -> Result<(), String> {
+  // 全部保存即可
+  captions.iter().for_each(|image_save_info| {
+    let caption_path = imagedir.join(Path::new(&format!("{}.{}", image_save_info.filename, caption_ext)));
+    let mut file = File::create(&caption_path).expect("无法创建文件");
+    let content = image_save_info.captions.join(", ");
+    file.write_all(content.as_bytes()).unwrap();
+  });
+  Ok(())
+}
+
+
+
+
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![check_path, load_thumbnail_with_captions, glob_images, load_image])
+    .invoke_handler(tauri::generate_handler![check_path, load_thumbnail_with_captions, glob_images, load_image, save_captions])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

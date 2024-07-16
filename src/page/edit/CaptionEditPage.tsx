@@ -16,6 +16,7 @@ import { changeCaptionsForImage, addCaptionForSelectedImages, changeCaptionForSe
 import { useDispatch } from "react-redux";
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import { invoke } from "@tauri-apps/api";
 
 
 function ImageItem(props: {
@@ -110,6 +111,7 @@ export default function CaptionEditPage() {
 
 
   const images = useSelector((state: RootState) => state.images.images.filter(image => image.isSelected));
+  const imagedir = useSelector((state: RootState) => state.imagedir.currentDir);
   const labels = useSelector((state: RootState) => state.images.labels);
   const defaultImageColumns = useSelector((state: RootState) => state.setting.defaultImageGalleryColumns);
 
@@ -219,12 +221,26 @@ export default function CaptionEditPage() {
             <IconButton onClick={() => navigate("/settings")}><SettingsIcon /></IconButton>
             <IconButton onClick={() => navigate("/help")} ><HelpIcon /></IconButton>
 
-            <IconButton size="small"><SaveIcon /></IconButton>
+            <IconButton size="small" onClick={() => save() }><SaveIcon /></IconButton>
           </div>
         </div>
       </Grid>
     </Grid>
   );
+
+
+
+  function save() {
+    // const imagedir = useSelector((state: RootState) => state.imagedir.currentDir);
+    if(imagedir) {
+      const image_save_info = images.map(img => ({
+        filename: img.filename,
+        captions: img.captions
+      }));
+
+      invoke('save_captions', { imagedir, captionExt: 'txt', captions: image_save_info }).then(() => console.log('保存成功')).catch(err => console.error(err));
+    }
+  }
 }
 
 

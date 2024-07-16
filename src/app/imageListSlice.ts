@@ -178,10 +178,12 @@ export const imageListSlice = createSlice({
     },
 
     changeCaptionsForImage: (state, action: PayloadAction<{ imageid: string, captions: string[] }>) => {
+      // 去一下重
+      const captions = Array.from(new Set([...action.payload.captions]));
       const images = state.images.map(img => {
         if (img.id !== action.payload.imageid) { return img }
         else {
-          return { ...img, captions: action.payload.captions }
+          return { ...img, captions }
         }
       });
 
@@ -192,8 +194,11 @@ export const imageListSlice = createSlice({
 
     addCaptionForSelectedImages: (state, action: PayloadAction<string>) => {
       const images = state.images.map(img => {
-        if(! img.isSelected) return img;
-        else return { ...img, captions: [...img.captions, action.payload] };
+        if (!img.isSelected) return img;
+        else {
+          const captions = Array.from(new Set([...img.captions, action.payload]));
+          return { ...img, captions}
+        };
       });
 
       // 记得更新 labels
@@ -203,14 +208,15 @@ export const imageListSlice = createSlice({
 
     changeCaptionForSelectedImages: (state, action: PayloadAction<{ before: string, after: string }>) => {
       const images = state.images.map(img => {
-        if(! img.isSelected) return img;
+        if (!img.isSelected) return img;
         else {
-          const captions = img.captions.map(caption => {
-            if(caption === action.payload.before) { return action.payload.after.trim() }
+          const _captions = img.captions.map(caption => {
+            if (caption === action.payload.before) { return action.payload.after.trim() }
             else return caption;
           });
+          const captions = Array.from(new Set(_captions));
 
-          return {...img, captions};
+          return { ...img, captions };
         }
       });
 
@@ -221,7 +227,7 @@ export const imageListSlice = createSlice({
 
     removeCaptionForSelectedImages: (state, action: PayloadAction<string>) => {
       const images = state.images.map(img => {
-        if(! img.isSelected) return img;
+        if (!img.isSelected) return img;
         else return { ...img, captions: img.captions.filter(caption => caption !== action.payload) };
       });
 
